@@ -1,0 +1,71 @@
+#use-added-syntax(jitx,tests)
+defpackage jlc-pcb/tests/main :
+  import core
+  import jitx
+  import jitx/commands
+  import jsl/layerstack
+  import jlc-pcb/my-demo
+  import jlc-pcb/JLC04161H-7628
+
+doc:\<DOC>
+  Verify the layers in a stack.
+@param stack The LayerStack to verify
+@param top-layers the top layaers, including the middle layer
+<DOC>
+defn verify-layers (stack:LayerStack, top-layers:Tuple<LayerSpec>) :
+  #EXPECT(length(layers(stack)) == length(top-layers) * 2 - 1)
+  #EXPECT(length(conductors(stack)) == length(top-layers) - 1)
+  val total-layers = length(layers(stack))
+  val middle = total-layers / 2
+  for idx in 0 through middle do :
+    #EXPECT(stack[idx] == top-layers[idx])
+    #EXPECT(stack[total-layers - 1 - idx] == top-layers[idx])
+
+deftest jlc-pcb-jlc2313 :
+  val test-stack = jlc-pcb/my-demo/jlc2313
+  val soldermask = Soldermask(0.019, SoldermaskMaterial)
+  val copper-35um = Copper(0.035)
+  val prepreg-2313 = FR4(0.1, FR4-Material)
+  val copper-17_5um = Copper(0.0175)
+  val core = FR4(1.265, FR4-Material)
+  val top-layers = [
+    soldermask
+    copper-35um 
+    prepreg-2313 
+    copper-17_5um
+    core
+  ]
+  verify-layers(test-stack, top-layers)
+
+;<A>
+deftest jlcpcb-jlc2313-6layer :
+  val test-stack = jlcpcb-jlc2313-6layer
+  val top-layers = [
+    soldermask
+    copper-35um
+    prepreg-2313-0_1 
+    copper-17_5um
+    core
+    copper-17_5um
+    prepreg-2313-0_127
+  ] where :
+    val soldermask = Soldermask(0.019, Soldermask-Material-BSN4000)
+    val copper-35um = Copper(0.035)
+    val prepreg-2313-0_1 = FR4(0.1, FR4-Material-2313)
+    val copper-17_5um = Copper(0.0175)
+    val core = FR4(0.565, FR4-Material-Core)
+    val prepreg-2313-0_127 = FR4(0.127, FR4-Material-2313)
+  verify-layers(test-stack, top-layers)
+
+deftest jlcpcb-jlc2313-2layer :
+  val test-stack = jlcpcb-jlc2313-2layer
+  val top-layers = [
+    soldermask
+    copper-35um 
+    core-45
+  ] where :
+    val soldermask = Soldermask(0.019, Soldermask-Material-BSN4000)
+    val copper-35um = Copper(0.035)
+    val core-45 = FR4(1.5, FR4-Material-Core)
+  verify-layers(test-stack, top-layers)
+ ;<A> 
