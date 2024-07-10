@@ -1,0 +1,27 @@
+#use-added-syntax(jitx,tests)
+defpackage jlc-pcb/tests/stackup :
+  import core
+  import jitx
+  import jitx/commands
+  import jsl/layerstack
+  import jsl/tests/layerstack
+
+deftest test-JLC04161H-7628 :
+  val test-stackup = jlc-pcb/JLC04161H-7628/stackup
+  print-def(test-stackup)
+
+  val test-stack = jlc-pcb/JLC04161H-7628/stack
+  verify-layers(test-stack, top-layers) where :
+    val copper-35mm = Copper(0.035, name = "cu")
+    val copper-75mm = Copper(0.070, name = "cu75") 
+    val core-FR4 = FR4(1.065, name = "core")
+    val prepreg-FR4 = FR4(0.2104, name = "7628x1")
+    val top-layers = 
+      [ 
+        copper-75mm
+        prepreg-FR4
+        copper-35mm
+        core-FR4
+      ]
+
+

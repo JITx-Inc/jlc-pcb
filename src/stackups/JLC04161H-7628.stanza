@@ -1,0 +1,58 @@
+#use-added-syntax(jitx)
+defpackage jlc-pcb/JLC04161H-7628:
+  import core
+  import jitx
+  import jsl/layerstack
+  
+val copper-35mm = Copper(0.035, name = "cu")
+val copper-75mm = Copper(0.070, name = "cu75") 
+val core-FR4 = FR4(1.065, name = "core")
+val prepreg-FR4 = FR4(0.2104, name = "7628x1")
+public val stack = make-layer-stack("JLC04161H-7628", outers) where :
+  val outers = 
+    [ 
+      [copper-75mm prepreg-FR4]
+      [copper-35mm core-FR4]
+    ]
+
+public val stackup = create-pcb-stackup(stack)
+
+; For debug:
+; print-def(stackup)
+
+#for ( 
+  se-name in [SE-50, SE-75]
+  width-val in [0.3424, 0.1311]
+  ):
+  public pcb-routing-structure se-name :
+    layer(Top):
+      trace-width = width-val
+      clearance = 0.508
+      velocity = 0.19e12
+      insertion-loss = 0.004
+    layer(Bottom):
+      trace-width = width-val
+      clearance = 0.508
+      velocity = 0.19e12
+      insertion-loss = 0.004
+      
+#for (
+  dp-name in [DP-50, DP-75, DP-100],
+  width-val in [0.8367, 0.4018, 0.2037],
+  space-val in [0.2032, 0.2032, 0.2032]
+  ):
+  public pcb-differential-routing-structure dp-name:
+    layer(Top):
+      trace-width = width-val
+      pair-spacing = space-val
+      clearance = 0.2032
+      velocity = 0.19e12
+      insertion-loss = 0.003
+
+    layer(Bottom):
+      trace-width = width-val
+      pair-spacing = space-val
+      clearance = 0.2032
+      velocity = 0.19e12
+      insertion-loss = 0.003
+
