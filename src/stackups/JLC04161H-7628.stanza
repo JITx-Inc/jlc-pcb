@@ -22,6 +22,7 @@ public val stackup = create-pcb-stackup(stack)
 #for ( 
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
+  ):
   public pcb-routing-structure se-name :
     layer(Top):
       trace-width = width-val
