@@ -17,9 +17,6 @@ public val stack = make-layer-stack("JLC04161H-7628", outers) where :
 
 public val stackup = create-pcb-stackup(stack)
 
-; For debug:
-; print-def(stackup)
-
 #for ( 
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
