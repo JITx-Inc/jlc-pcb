@@ -198,7 +198,7 @@ public defn is-valid-stackup (name:String) :
       ;TODO
     ]
 
-defn dialectric-coefficient (type:PrepregType|String) -> Double :
+defn dialectric-constant (type:PrepregType|String) -> Double :
   switch {type == _} :
     "core"   : 4.6
     \|7628| : 4.4
@@ -209,35 +209,35 @@ defn dialectric-coefficient (type:PrepregType|String) -> Double :
 public val FR4-Material-Core = DielectricMaterial(
     name = "FR4 Core"
     description = "FR4 Core"
-    dielectric-coefficient = dialectric-coefficient("core")  ; @ 1GHz
+    dielectric-coefficient = dialectric-constant("core")  ; @ 1GHz
     loss-tangent = 0.25 ; @ 1GHz
   )
 
 public val FR4-Material-3313 = DielectricMaterial(
     name = "FR4 (7628)"
     description = "FR4 for JLC 3313"
-    dielectric-coefficient = dialectric-coefficient(\|3313|)  ; @ 1GHz
+    dielectric-coefficient = dialectric-constant(\|3313|)  ; @ 1GHz
     loss-tangent = 0.25 ; @ 1GHz
   )
 
 public val FR4-Material-7628 = DielectricMaterial(
     name = "FR4 (7628)"
     description = "FR4 for JLC 7628"
-    dielectric-coefficient = dialectric-coefficient(\|7628|) ; @ 1GHz
+    dielectric-coefficient = dialectric-constant(\|7628|) ; @ 1GHz
     loss-tangent = 0.25 ; @ 1GHz
   )
 
 public val FR4-Material-1080 = DielectricMaterial(
     name = "FR4 (1080)"
     description = "FR4 for JLC 1080"
-    dielectric-coefficient = dialectric-coefficient(\|1080|) ; @ 1GHz
+    dielectric-coefficient = dialectric-constant(\|1080|) ; @ 1GHz
     loss-tangent = 0.25 ; @ 1GHz
   )
 
 public val FR4-Material-2116 = DielectricMaterial(
     name = "FR4 (2116)"
     description = "FR4 for JLC 2116"
-    dielectric-coefficient = dialectric-coefficient(\|2116|) ; @ 1GHz
+    dielectric-coefficient = dialectric-constant(\|2116|) ; @ 1GHz
     loss-tangent = 0.25 ; @ 1GHz
   )
 
