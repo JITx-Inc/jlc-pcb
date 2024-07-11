@@ -2,9 +2,6 @@
 doc:\<DOC>
   Shared data structures for JLC-PCB stackups
 
-  - Parameters not modeled:
-    - The core dielectric constant is 4.6
-
   Questions:
     - loss-tangent = 0.25 for all FR4-Material?
     - Should we model "No requirement Stackup" too? But it has no name.

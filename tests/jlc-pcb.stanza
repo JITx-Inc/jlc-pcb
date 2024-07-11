@@ -7,12 +7,16 @@ defpackage jlc-pcb/tests/stackups :
   import jsl/tests/layerstack
   import jlc-pcb/shared
   import jlc-pcb/stackups
+  import jlc-pcb/basic-rules
+  import esir/ir
 
-deftest test-JLC04161H-7628 :
+deftest make-JLC04161H-7628 :
   val test-stackup = jlc-pcb/JLC04161H-7628/stackup
   print-def(test-stackup)
   println(get-def-string(test-stackup))
   ; => "pcb-stackup D90custom-stackup"
+  println(test-stackup)
+  ; => "Stackup JLC04161H-7628"
 
   val test-stack = jlc-pcb/JLC04161H-7628/stack
   verify-layers(test-stack, top-layers) where :
@@ -26,7 +30,7 @@ deftest test-JLC04161H-7628 :
         core
       ]
 
-deftest test-general-JLC04161H-7628 :
+deftest make-JLC04161H-7628-from-name :
   val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628")
   print-def(test-stackup)
   
@@ -34,7 +38,16 @@ deftest test-general-JLC04161H-7628 :
   ;#EXPECT(test-stackup == jlc-pcb/JLC04161H-7628/stackup)
 
 ; three adjacent prepreg layers
-deftest test-general-JLC04161H-7628B :
+deftest make-JLC04161H-7628B-from-name :
   val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628B")
   print-def(test-stackup)
-  
+
+  ;val stmts = statements(test-stackup)
+  ;println(stmts)
+
+deftest make-rules :
+  val test-rules = jlc-pcb/basic-rules/rules
+  ;print-def(test-rules)
+  ;println(clearances(test-rules))
+  #EXPECT(clearances(test-rules) == clearances(jlc-pcb/basic-rules/rules-direct))
+

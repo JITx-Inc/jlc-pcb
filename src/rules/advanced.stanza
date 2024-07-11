@@ -1,10 +1,15 @@
 #use-added-syntax(jitx)
+doc:\<DOC>
+  JLC-PCB Advanced Rules
+
+  Note: All metrics are in mm.
+  Reference: https://jlcpcb.com/capabilities/Capabilities
+<DOC>
 defpackage jlc-pcb/advanced-rules :
   import core
   import jitx
 
 public pcb-rules rules :
-  ; https://jlcpcb.com/capabilities/Capabilities
   min-copper-width = 0.09 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
   min-copper-copper-space = 0.09 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
   min-copper-hole-space = 0.254 ; 10mil

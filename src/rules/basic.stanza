@@ -1,27 +1,57 @@
 #use-added-syntax(jitx)
+doc:\<DOC>
+  JLC-PCB Basic Rules
+
+  Question: 
+    - Inconsistency: Some parameters use "solder-mask", but others use "soldermask".
+      Should we make them consistent?
+  
+  Note: All metrics are in mm.
+  Reference: https://jlcpcb.com/capabilities/Capabilities
+<DOC>
 defpackage jlc-pcb/basic-rules :
   import core
   import jitx
+  import jlc-pcb/rules/shared
 
-public pcb-rules rules :
+public pcb-rules rules-direct :
+  ;copper rules
   min-copper-width = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
   min-copper-copper-space = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
   min-copper-hole-space = 0.254 ; 10mil
   min-copper-edge-space = 0.2 ; 7.87mil
-  min-annular-ring = 0.215 ; 7.87mil
-  min-drill-diameter = 0.3 ; 7.87mil
-  min-silkscreen-width = 0.153 ; 6mil
-  min-pitch-leaded = 0.3 ; 11.81mil (guess)
-  min-pitch-bga = 0.377 ; 14.84mil
-  max-board-width = 350.0 ; 15.74in
-  max-board-height = 320.0 ; 19.68in
-  min-silk-solder-mask-space = 0.15
-  min-silkscreen-text-height = 0.80
+  ;soldermask rules
   solder-mask-registration = 0.05
-  min-th-pad-expand-outer = 0.26 
   min-soldermask-opening = 0.10 ; solder bridge - solder mask opening/expansion DIAMETER
   min-soldermask-bridge = 0.2 ; green
+  ;silkscreen rules
+  min-silkscreen-width = 0.153 ; 6mil
+  min-silk-solder-mask-space = 0.15
+  min-silkscreen-text-height = 0.80
+  ;via rules
+  min-annular-ring = 0.215 ; 7.87mil
+  min-drill-diameter = 0.3 ; 7.87mil
+  min-pitch-leaded = 0.3 ; 11.81mil (guess)
+  min-pitch-bga = 0.377 ; 14.84mil
+  ;pad rules
   min-hole-to-hole = 0.5 
   min-pth-pin-solder-clearance = 3.0 ; TODO: lookup actual value
+  min-th-pad-expand-outer = 0.26 
+  ;board rules
+  max-board-width = 350.0 ; 15.74in
+  max-board-height = 320.0 ; 19.68in
 
+public val rules-prop = RulesProp(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules) where :
+  val board-rules = BoardRules(350.0, 320.0)
+  val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
+  val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
+  val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
+  val pad-rules = PadRules(0.5, 3.0, 0.26)
+  val via-rules = ViaRules(0.215, 0.3, 0.3, 0.377)
 
+public val rules = create-pcb-rules(rules-prop)
