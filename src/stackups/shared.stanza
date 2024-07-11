@@ -1,0 +1,245 @@
+#use-added-syntax(jitx)
+doc:\<DOC>
+  Shared data structures for JLC-PCB stackups
+
+  - Parameters not modeled:
+    - The core dielectric constant is 4.6
+
+  Questions:
+    - loss-tangent = 0.25 for all FR4-Material?
+    - Should we model "No requirement Stackup" too? But it has no name.
+
+  Reference:
+    - Data for stackup layers:  https://jlcpcb.com/impedance
+    - Stackup Naming convention: https://jlcpcb.com/help/article/263-User-Guide-to-the-JLCPCB-Impedance-Calculator
+    - Data for routing structures: https://jlcpcb.com/pcb-impedance-calculator
+    - Data for Rules: https://jlcpcb.com/capabilities/pcb-capabilities
+<DOC> 
+defpackage jlc-pcb/shared:
+  import core
+  import jitx
+  import jsl/layerstack
+
+public val copper-15_2um = Copper(0.0152, name = "cu15_2")
+public val copper-35um = Copper(0.035, name = "cu35")
+
+public defenum PrepregType :
+  \|7628|
+  \|3313|
+  \|1080|
+  \|2116|
+
+defn to-prepreg-type (name:String) -> PrepregType :
+  switch {name == _} :
+    "7628" : \|7628|
+    "3313" : \|3313|
+    "1080" : \|1080|
+    "2116" : \|2116|
+    else: throw(Exception("Nonexistent or unsupported Prepreg Type %_" % [name]))
+
+public defenum WeightType :
+  \|0.5oz|
+  \|1oz|
+  \|2oz|
+
+defn to-weight-type (c:Char) :
+  switch {c == _} :
+    'H': \|0.5oz|
+    '1': \|1oz|
+    '2': \|2oz|
+
+public defstruct StackupProperty :
+  type: PrepregType   ; 7628, 3313, 1080, 2116
+  variation: Char     ; '0', A, B, C, D
+  num-layers: Int     ; 4, 6, ... 20
+  thickness: Double   ; 0.8mm, 1.0mm, 1.2mm, 1.6mm, 2.0mm
+  outer-copper-weight: WeightType ; 0.5oz, 1oz, 2oz
+  inner-copper-weight: WeightType
+
+doc:\<DOC>
+  Retrieve the property of a stackup from its name for the JLC-PCB stackup name,
+  such as JLC04161H-7628.
+<DOC>
+public defn to-stackup-property (name:String) -> StackupProperty :
+  try:
+    StackupProperty(type, variation, num-layers, thickness, outer-copper-weight, inner-copper-weight) where :
+      val type = to-prepreg-type(name[10 to 14])
+      val variation = '0' when length(name) <= 14 else name[14] 
+      val num-layers = to-int!(name[3 to 5])
+      val thickness = to-double!(name[5 to 7]) / 10.0
+      val outer-copper-weight = to-weight-type(name[7])
+      val inner-copper-weight = to-weight-type(name[8])
+  catch (e):
+    throw(Exception("Failed to parse stackup name %_ (%_)" % [name e]))
+
+public defn is-valid-stackup (name:String) :
+  contains?(valid-stackups, name) where :
+    val valid-stackups = [
+      ;------ 4-layer stackups ------
+      ;-- JLC04**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
+      ; JLC04081H-* : thickness 0.8mm
+      "JLC04081H-7628" 
+      "JLC04081H-3313"
+      "JLC04081H-1080"
+      "JLC04081H-2116"
+      ; JLC04101H-* : thickness 1.0mm
+      "JLC04101H-7628"
+      "JLC04101H-3313" 
+      "JLC04101H-1080"
+      "JLC04101H-1080A"
+      ; JLC04121H-* : thickness 1.2mm
+      "JLC04121H-7628" 
+      "JLC04121H-3313" 
+      "JLC04121H-1080"
+      "JLC04121H-7628A"
+      "JLC04121H-1080A"
+      "JLC04121H-2116A" ; but no JLC04121H-2116
+      ; JLC04161H-* : thickness 1.6mm
+      "JLC04161H-7628" 
+      "JLC04161H-3313" 
+      "JLC04161H-1080"
+      "JLC04161H-7628A"
+      "JLC04161H-7628B"
+      "JLC04161H-3313A"
+      "JLC04161H-1080A"
+      "JLC04161H-2116A" ; but no JLC04121H-2116
+      "JLC04161H-2116B"
+      "JLC04161H-2116C"
+      ; JLC04201H-* : thickness 2.0mm
+      "JLC04201H-7628" 
+      "JLC04201H-3313" 
+      "JLC04201H-1080"
+      ;-- JLC04**2H : outer-copper-weight = 2oz; inner-copper-weight = 0.5oz
+      ; JLC04082H-* : thickness 0.8mm
+      "JLC04082H-7628"
+      ; JLC04102H-* : thickness 1.0mm
+      "JLC04102H-7628"
+      ; JLC04122H-* : thickness 1.2mm
+      "JLC04122H-7628"
+      ; JLC04162H-* : thickness 1.6mm
+      "JLC04162H-7628" 
+      "JLC04162H-3313" 
+      ; JLC04202H-* : thickness 2.0mm
+      "JLC04202H-7628" 
+      ;-- JLC04**11 : outer-copper-weight = 1oz; inner-copper-weight = 1oz
+      ; JLC040811-* : thickness 0.8mm
+      "JLC040811-7628" 
+      "JLC040811-3313" 
+      "JLC040811-1080"
+      ; JLC041011-* : thickness 1.0mm
+      "JLC041011-7628" 
+      "JLC041011-3313" 
+      "JLC041011-1080"
+      "JLC041011-2116"
+      "JLC041011-2116A"
+      ; JLC041211-* : thickness 1.2mm
+      "JLC041211-7628" 
+      "JLC041211-3313" 
+      "JLC041211-1080"
+      "JLC041211-1080A"
+      ; JLC041611-* : thickness 1.6mm
+      "JLC041611-7628" 
+      "JLC041611-3313" 
+      "JLC041611-1080"
+      "JLC041611-2116"
+      "JLC041611-7628A"
+      "JLC041611-7628B"
+      "JLC041611-7628C"
+      "JLC041611-7628D"
+      "JLC041611-1080A"
+      "JLC041611-2116A"
+      ; JLC042011-* : thickness 2.0mm
+      "JLC042011-7628" 
+      "JLC042011-3313" 
+      "JLC042011-1080"
+      "JLC042011-7628A"
+      ;-- JLC04**12 : outer-copper-weight = 1oz; inner-copper-weight = 2oz
+      ; JLC040812-* : thickness 0.8mm
+      "JLC040812-3313" 
+      ; JLC041012-* : thickness 1.0mm
+      "JLC041012-3313" 
+      ; JLC041212-* : thickness 1.2mm
+      "JLC041212-3313" 
+      ; JLC041612-* : thickness 1.6mm
+      "JLC041612-7628" 
+      "JLC041612-3313" 
+      ; JLC042012-* : thickness 2.0mm
+      "JLC042012-3313" 
+      ;-- JLC04**21 : outer-copper-weight = 2oz; inner-copper-weight = 1oz
+      ; JLC040821-* : thickness 0.8mm
+      "JLC040821-7628" 
+      ; JLC041021-* : thickness 1.0mm
+      "JLC041021-7628" 
+      ; JLC041221-* : thickness 1.2mm
+      "JLC041221-7628" 
+      ; JLC041621-* : thickness 1.6mm
+      "JLC041621-7628" 
+      "JLC041621-3313"
+      "JLC041621-7628A"
+      ; JLC042021-* : thickness 2.0mm
+      "JLC042021-7628"
+      "JLC042021-762A"
+      ;-- JLC04**22 : outer-copper-weight = 2oz; inner-copper-weight = 2oz
+      ; JLC040822-* : thickness 0.8mm
+      "JLC040822-3313" 
+      ; JLC041022-* : thickness 1.0mm
+      "JLC041022-3313" 
+      "JLC041022-7628" 
+      ; JLC041222-* : thickness 1.2mm
+      "JLC041222-3313" 
+      ; JLC041622-* : thickness 1.6mm
+      "JLC041622-7628" 
+      "JLC041622-3313" 
+      ; JLC042022-* : thickness 2.0mm
+      "JLC042022-7628" 
+      "JLC042022-3313" 
+      ;------ 6-layer stackups ------
+      ;-- JLC06**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
+      ;TODO
+    ]
+
+defn dialectric-coefficient (type:PrepregType) -> Double :
+  switch {type == _} :
+    \|7628| : 4.4
+    \|3313| : 4.1
+    \|1080| : 3.91
+    \|2116| : 4.16
+  
+public val FR4-Material-3313 = DielectricMaterial(
+    name = "FR4 (7628)"
+    description = "FR4 for JLC 3313"
+    dielectric-coefficient = dialectric-coefficient(\|3313|)  ; @ 1GHz
+    loss-tangent = 0.25 ; @ 1GHz
+  )
+
+public val FR4-Material-7628 = DielectricMaterial(
+    name = "FR4 (7628)"
+    description = "FR4 for JLC 7628"
+    dielectric-coefficient = dialectric-coefficient(\|7628|) ; @ 1GHz
+    loss-tangent = 0.25 ; @ 1GHz
+  )
+
+public val FR4-Material-1080 = DielectricMaterial(
+    name = "FR4 (1080)"
+    description = "FR4 for JLC 1080"
+    dielectric-coefficient = dialectric-coefficient(\|1080|) ; @ 1GHz
+    loss-tangent = 0.25 ; @ 1GHz
+  )
+
+public val FR4-Material-2116 = DielectricMaterial(
+    name = "FR4 (2116)"
+    description = "FR4 for JLC 2116"
+    dielectric-coefficient = dialectric-coefficient(\|2116|) ; @ 1GHz
+    loss-tangent = 0.25 ; @ 1GHz
+  )
+
+public defn FR4 (type:String, thickness:Double, name:String) -> LayerSpec :
+  FR4(to-prepreg-type(type), thickness, name)
+
+public defn FR4 (type:PrepregType, thickness:Double, name:String) -> LayerSpec :
+  val material = switch {type == _} :
+    \|7628| : FR4-Material-7628
+    \|3313| : FR4-Material-3313
+    \|1080| : FR4-Material-1080
+    \|2116| : FR4-Material-2116
+  FR4(thickness, material, name = name)

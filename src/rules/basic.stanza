@@ -1,4 +1,7 @@
-defpackage jlc-pcb/basic-rules
+#use-added-syntax(jitx)
+defpackage jlc-pcb/basic-rules :
+  import core
+  import jitx
 
 public pcb-rules rules :
   min-copper-width = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs

@@ -1,18 +1,29 @@
 #use-added-syntax(jitx)
+doc:\<DOC>
+  Create the JLC04161H-7628 stakup.
+    - 4-layer impedance control stackup
+    - 1.6mm thickness
+    - 1oz outer copper weight
+    - 0.5oz inner copper weight
+
+  Source: 
+
+  Note: All metrics are in mm.
+  Reference: https://jlcpcb.com/impedance
+<DOC>
 defpackage jlc-pcb/JLC04161H-7628:
   import core
   import jitx
   import jsl/layerstack
-  
-val copper-35mm = Copper(0.035, name = "cu")
-val copper-75mm = Copper(0.070, name = "cu75") 
-val core-FR4 = FR4(1.065, name = "core")
-val prepreg-FR4 = FR4(0.2104, name = "7628x1")
-public val stack = make-layer-stack("JLC04161H-7628", outers) where :
+  import jlc-pcb/shared
+
+protected val stack = make-layer-stack("JLC04161H-7628", outers) where :
+  val core = FR4("7628", 1.065, "core")
+  val prepreg = FR4("7628", 0.2104, "7628x1")
   val outers = 
     [ 
-      [copper-75mm prepreg-FR4]
-      [copper-35mm core-FR4]
+      [copper-35um prepreg]
+      [copper-15_2um core]
     ]
 
 public val stackup = create-pcb-stackup(stack)

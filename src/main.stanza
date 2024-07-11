@@ -1,8 +1,0 @@
-
-defpackage jlcpcb/main:
-  import core
-
-defn main () -> False:
-  println("Hello, world!")
-
-main()

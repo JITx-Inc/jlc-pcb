@@ -1,4 +1,7 @@
-defpackage jlc-pcb/advanced-rules
+#use-added-syntax(jitx)
+defpackage jlc-pcb/advanced-rules :
+  import core
+  import jitx
 
 public pcb-rules rules :
   ; https://jlcpcb.com/capabilities/Capabilities

@@ -1,13 +1,10 @@
 
-;packages jlc-pcb/* defined-in "./src/"
-;packages jlc-pcb/tests/* defined-in "./tests/"
-
-package jlc-pcb/JLC04161H-7628 defined-in "./src/stackups/JLC04161H-7628.stanza"
-package jlc-pcb/tests/stackup defined-in "./tests/jlc-pcb.stanza"
+packages jlc-pcb/* defined-in "./src/"
+packages jlc-pcb/tests/* defined-in "./tests/"
 
 build-test tests:
   inputs: 
-    jlc-pcb/tests/stackup
+    jlc-pcb/tests/stackups
   pkg: ".slm/pkgs"
   o: "jlc-pcb-tests"
 

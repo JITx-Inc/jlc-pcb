@@ -1,0 +1,187 @@
+defpackage jlc-pcb/stackups:
+  import core
+  import collections
+  import jitx
+  import jsl/layerstack
+  import jlc-pcb/shared
+
+doc:\<DOC>
+  Create the JLC-PCB stackup from its name, such as JLC04161H-7628.
+<DOC>
+public defn create-pcb-stackup-from-name (name:String) -> Stackup:
+  if not is-valid-stackup(name) :
+    throw(Exception("Nonexistent Stackup %_" % [name]))
+
+  val stackup-property = to-stackup-property(name)
+  if num-layers(stackup-property) != 4 :
+    throw(Exception("Unsupported Stackup %_" % [name]))
+  
+  val stack = make-layer-stack(name, to-tuple $ outers) where :
+    val [core prepregs] = retrieve-4-layer-dialectrics(name)
+    val [outer-copper inner-copper] = retrieve-4-layer-coppers(name)
+    val outers = Vector<[LayerSpec LayerSpec]|LayerSpec>()
+    add(outers, [outer-copper prepregs[0]])
+    if length(prepregs) > 1 :
+      add-all(outers, prepregs[1 to false])
+    add(outers, [inner-copper core])
+  create-pcb-stackup(stack)
+
+doc:\<DOC>
+  Retrieve copper LayerSpec's for the named stackup in the format of
+   [outer-copper inner-copper] where
+     outer-copper is the LayerSpec of the outer copper layer
+     inner-copper is the LayerSpec of the inner copper layer
+  A 4-layer stackup has 4 copper layers, the two outer copper layers are the same
+  and the two inner copper layers are the same.
+<DOC>
+defn retrieve-4-layer-coppers (name:String) -> [LayerSpec LayerSpec] :
+  val stackup-property = to-stackup-property(name)
+  [outer-copper inner-copper] where :
+    val [outer-thickness inner-thickness] = 
+      switch {_ == [outer-copper-weight(stackup-property) inner-copper-weight(stackup-property)]} :
+        [\|1oz| \|0.5oz|] : [0.035 0.0152]
+        [\|1oz| \|1oz|] : [0.035 0.03]
+        [\|1oz| \|2oz|] :  [0.035 0.061]
+        [\|2oz| \|0.5oz|] : [0.07 0.0152]
+        [\|2oz| \|1oz|] : [0.07 0.03]
+        [\|2oz| \|2oz|] : [0.07 0.061]
+    val outer-copper = Copper(outer-thickness)
+    val inner-copper = Copper(inner-thickness)
+
+doc:\<DOC>
+  Retrieve parameters for the named stackup in the format of
+   [core-layer [prepreg preregAdd1 prepregAdd2] where
+     core-layer is the LayerSpec for the core FR4 layer
+     pregpreg is the LayerSpec is pregpreg right below the outer copper layer
+     pregpregAdd1 is the additional LayerSpec right below the pregpreg layer, if present,
+       as seen in  "JLC04081H-2116" or "JLC04101H-1080A"
+     pregpregAdd2 is the additional LayerSpec right below the pregpregAdd1 layer, if present,
+       as seen in "JLC04161H-7628B" or "JLC04161H-2116A".
+<DOC>
+defn retrieve-4-layer-dialectrics (name:String) -> [LayerSpec Tuple<LayerSpec>]:
+  val stackup-property = to-stackup-property(name)
+  [FR4(type(stackup-property), core-thickness, "core") prepregs] where :
+    val [core-thickness prepregs] = switch {name == _}:
+      ;------ 4-layer stackups ------
+      ;-- JLC04**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
+      ; JLC04081H-* : thickness 0.8mm
+      "JLC04081H-7628": [0.25 [FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04081H-3313": [0.45 [FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04081H-1080": [0.5  [FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04081H-2116": [0.2  [FR4(\|2116|, 0.124, "2116*1") FR4(\|2116|, 0.1164, "2116*1")]]
+      ; JLC04101H-* : thickness 1.0mm
+      "JLC04101H-7628": [0.45 [FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04101H-3313": [0.7  [FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04101H-1080": [0.7  [FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04101H-1080A": [0.3 [FR4(\|1080|, 0.084, "1080*1") FR4(\|7628|, 0.2104, "7628*1")]]
+      ; JLC04121H-* : thickness 1.2mm
+      "JLC04121H-7628": [0.6 [FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04121H-3313": [0.865 [FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04121H-1080": [0.865 [FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04121H-7628A": [0.2 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04121H-1080A": [0.5 [FR4(\|1080|, 0.084, "1080*1") FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04121H-2116A": [0.6 [FR4(\|2116|, 0.124, "2116*1") FR4(\|2116|, 0.1164, "2116*1")]]
+      ; JLC04161H-* : thickness 1.6mm
+      "JLC04161H-7628": [1.065 [FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04161H-3313": [1.265 [FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04161H-1080": [2.165 [FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04161H-7628A": [0.865 [FR4(\|7628|, 0.218 "7628*1") FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04161H-7628B": [0.4 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.1164, "2116*1")]]
+      "JLC04161H-3313A": [1.065 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04161H-1080A": [1.065 [FR4(\|1080|, 0.084, "1080*1") FR4(\|1080|, 0.0764, "1080*1")]]
+      "JLC04161H-2116A": [0.6 [FR4(\|2116|, 0.124, "2116*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.1164, "2116*1")]]
+      "JLC04161H-2116B": [0.865 [FR4(\|2116|, 0.124, "2116*1") FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04161H-2116C": [1.065 [FR4(\|2116|, 0.124, "2116*1") FR4(\|1080|, 0.0764, "1080*1")]]
+      ; JLC04201H-* : thickness 2.0mm
+      "JLC04201H-7628": [1.465 [FR4(\|7628|, 0.2104, "7628*1")]]
+      "JLC04201H-3313": [1.665 [FR4(\|3313|, 0.0994, "3313*1")]]
+      "JLC04201H-1080": [1.665 [FR4(\|1080|, 0.0764, "1080*1")]]
+      ;-- JLC04**2H : outer-copper-weight = 2oz; inner-copper-weight = 0.5oz
+      ; JLC04082H-* : thickness 0.8mm
+      "JLC04082H-7628": [0.2 [FR4(\|7628|, 0.2104, "7628*1")]]
+      ; JLC04102H-* : thickness 1.0mm
+      "JLC04102H-7628": [0.4 [FR4(\|7628|, 0.2104, "7628*1")]]
+      ; JLC04122H-* : thickness 1.2mm
+      "JLC04122H-7628": [0.6 [FR4(\|7628|, 0.2104, "7628*1")]]
+      ; JLC04162H-* : thickness 1.6mm
+      "JLC04162H-7628": [1.065 [FR4(\|7628|, 0.2104, "7628*1")]] 
+      "JLC04162H-3313": [1.265 [FR4(\|3313|, 0.0994, "3313*1")]]
+      ; JLC04202H-* : thickness 2.0mm
+      "JLC04202H-7628": [1.465 [FR4(\|7628|, 0.2104, "7628*1")]]
+      ;-- JLC04**11 : outer-copper-weight = 1oz; inner-copper-weight = 1oz
+      ; JLC040811-* : thickness 0.8mm
+      "JLC040811-7628": [0.2 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC040811-3313": [0.4 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC040811-1080": [0.45 [FR4(\|1080|, 0.069, "1080*1")]]
+      ; JLC041011-* : thickness 1.0mm
+      "JLC041011-7628": [0.4 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041011-3313": [0.6 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC041011-1080": [0.7 [FR4(\|1080|, 0.069, "1080*1")]]
+      "JLC041011-2116": [0.25 [FR4(\|2116|, 0.124, "2116*1") FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041011-2116A": [0.6 [FR4(\|2116|, 0.109, "2116*1")]]
+      ; JLC041211-* : thickness 1.2mm
+      "JLC041211-7628": [0.6 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041211-3313": [0.83 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC041211-1080": [0.83 [FR4(\|1080|, 0.069, "1080*1")]]
+      "JLC041211-1080A": [0.7 [FR4(\|1080|, 0.084, "1080*1") FR4(\|1080|, 0.069, "1080*1")]]
+      ; JLC041611-* : thickness 1.6mm
+      "JLC041611-7628": [1.03 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041611-3313": [1.23 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC041611-1080": [1.23 [FR4(\|1080|, 0.069, "1080*1")]]
+      "JLC041611-2116": [1.23 [FR4(\|2116|, 0.109, "2116*1")]]
+      "JLC041611-7628A": [1.15 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041611-7628B": [0.83 [FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.109, "7628*1")]]
+      "JLC041611-7628C": [0.35 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.109, "2116*1")]]
+      "JLC041611-7628D": [0.45 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|1080|, 0.069, "1080*1")]]
+      "JLC041611-1080A": [1.03 [FR4(\|1080|, 0.084, "1080*1") FR4(\|1080|, 0.069, "1080*1") ]]
+      "JLC041611-2116A": [1.03 [FR4(\|2116|, 0.124, "2116*1") FR4(\|1080|, 0.069, "1080*1") ]]
+      ; JLC042011-* : thickness 2.0mm
+      "JLC042011-7628": [1.43 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC042011-3313": [1.63 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC042011-1080": [1.63 [FR4(\|1080|, 0.069, "1080*1")]]
+      "JLC042011-7628A": [0.7 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.109, "2116*1")]]
+      ;-- JLC04**12 : outer-copper-weight = 1oz; inner-copper-weight = 2oz
+      ; JLC040812-* : thickness 0.8mm
+      "JLC040812-3313": [0.15 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC041012-* : thickness 1.0mm
+      "JLC041012-3313": [0.35 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]] 
+      ; JLC041212-* : thickness 1.2mm
+      "JLC041212-3313": [0.55 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC041612-* : thickness 1.6mm
+      "JLC041612-7628": [0.55 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.1875, "7628*1")]]
+      "JLC041612-3313": [0.96 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC042012-* : thickness 2.0mm
+      "JLC042012-3313": [1.36 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ;-- JLC04**21 : outer-copper-weight = 2oz; inner-copper-weight = 1oz
+      ; JLC040821-* : thickness 0.8mm
+      "JLC040821-7628": [0.15 [FR4(\|7628|, 0.203, "7628*1")]]
+      ; JLC041021-* : thickness 1.0mm
+      "JLC041021-7628": [0.36 [FR4(\|7628|, 0.203, "7628*1")]]
+      ; JLC041221-* : thickness 1.2mm
+      "JLC041221-7628": [0.6 [FR4(\|7628|, 0.203, "7628*1")]]
+      ; JLC041621-* : thickness 1.6mm
+      "JLC041621-7628": [1.03 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC041621-3313": [1.23 [FR4(\|3313|, 0.092, "3313*1")]]
+      "JLC041621-7628A": [0.55 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.203, "7628*1")]]
+      ; JLC042021-* : thickness 2.0mm
+      "JLC042021-7628": [1.43 [FR4(\|7628|, 0.203, "7628*1")]]
+      "JLC042021-762A": [0.83 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|1080|, 0.069, "1080*1")]]
+      ;-- JLC04**22 : outer-copper-weight = 2oz; inner-copper-weight = 2oz
+      ; JLC040822-* : thickness 0.8mm
+      "JLC040822-3313": [0.15 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC041022-* : thickness 1.0mm
+      "JLC041022-3313": [0.3 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      "JLC041022-7628": [0.15 [FR4(\|7628|, 0.0535, "7628*1") FR4(\|1080|, 0.203, "1080*1")]]
+      ; JLC041222-* : thickness 1.2mm
+      "JLC041222-3313": [0.5 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC041622-* : thickness 1.6mm
+      "JLC041622-7628": [0.5 [FR4(\|7628|, 0.218, "7628*1") FR4(\|2116|, 0.124, "2116*1") FR4(\|2116|, 0.0935, "2116*1")]]
+      "JLC041622-3313": [0.96 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ; JLC042022-* : thickness 2.0mm
+      "JLC042022-7628": [0.55 [FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.218, "7628*1") FR4(\|7628|, 0.1875, "7628*1")]]
+      "JLC042022-3313": [1.36 [FR4(\|3313|, 0.107, "3313*1") FR4(\|3313|, 0.0765, "3313*1")]]
+      ;------ 6-layer stackups -----
+      ;-- JLC06**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
+      ;TODO
+      else:
+        throw(Exception("Unsupported stackup %_" % [name]))
