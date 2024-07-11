@@ -195,9 +195,14 @@ public defn is-valid-stackup (name:String) :
       ;TODO
     ]
 
-defn dialectric-constant (type:PrepregType|String) -> Double :
+defn dielectric-constant (type:String) -> Double :
+  if type == "core" :
+    4.6
+  else :
+    dielectric-constant(to-prepreg-type(type))
+
+defn dielectric-constant (type:PrepregType) -> Double :
   switch {type == _} :
-    "core"   : 4.6
     \|7628| : 4.4
     \|3313| : 4.1
     \|1080| : 3.91
@@ -206,36 +211,36 @@ defn dialectric-constant (type:PrepregType|String) -> Double :
 public val FR4-Material-Core = DielectricMaterial(
     name = "FR4 Core"
     description = "FR4 Core"
-    dielectric-coefficient = dialectric-constant("core")  ; @ 1GHz
-    loss-tangent = 0.25 ; @ 1GHz
+    dielectric-coefficient = dielectric-constant("core")  ; @ 1GHz
+    loss-tangent = 0.25
   )
 
 public val FR4-Material-3313 = DielectricMaterial(
     name = "FR4 (7628)"
     description = "FR4 for JLC 3313"
-    dielectric-coefficient = dialectric-constant(\|3313|)  ; @ 1GHz
-    loss-tangent = 0.25 ; @ 1GHz
+    dielectric-coefficient = dielectric-constant(\|3313|)  ; @ 1GHz
+    loss-tangent = 0.25
   )
 
 public val FR4-Material-7628 = DielectricMaterial(
     name = "FR4 (7628)"
     description = "FR4 for JLC 7628"
-    dielectric-coefficient = dialectric-constant(\|7628|) ; @ 1GHz
-    loss-tangent = 0.25 ; @ 1GHz
+    dielectric-coefficient = dielectric-constant(\|7628|) ; @ 1GHz
+    loss-tangent = 0.25
   )
 
 public val FR4-Material-1080 = DielectricMaterial(
     name = "FR4 (1080)"
     description = "FR4 for JLC 1080"
-    dielectric-coefficient = dialectric-constant(\|1080|) ; @ 1GHz
-    loss-tangent = 0.25 ; @ 1GHz
+    dielectric-coefficient = dielectric-constant(\|1080|) ; @ 1GHz
+    loss-tangent = 0.25
   )
 
 public val FR4-Material-2116 = DielectricMaterial(
     name = "FR4 (2116)"
     description = "FR4 for JLC 2116"
-    dielectric-coefficient = dialectric-constant(\|2116|) ; @ 1GHz
-    loss-tangent = 0.25 ; @ 1GHz
+    dielectric-coefficient = dielectric-constant(\|2116|) ; @ 1GHz
+    loss-tangent = 0.25
   )
 
 public defn FR4 (type:String, thickness:Double, name:String) -> LayerSpec :
@@ -251,3 +256,27 @@ public defn FR4 (type:PrepregType, thickness:Double, name:String) -> LayerSpec :
     \|1080| : FR4-Material-1080
     \|2116| : FR4-Material-2116
   FR4(thickness, material, name = name)
+
+doc:\<DOC>
+    Calculate the signal propagation velocity 
+
+    @param epsilon_r (dielectric-constant): The relative permittivity of the material. Default is 4.5.
+
+    @return The signal velocity in the FR4 material (in mm/second).
+<DOC>
+defn calculate_velocity (epsilon_r = 4.5) :
+    ;Speed of light in vacuum (mm/s)
+    val light-speed = 3.0e11
+    ;Calculate the signal velocity
+    val velocity = light-speed * (math/pow(epsilon_r -0.5)) ; equivalent to light-speed / (math/pow(epsilon_r 0.5)
+    velocity
+
+doc:\<DOC>
+    Calculate the signal propagation velocity in FR4 material.
+
+    @param type: The material type: "core" or "7628", "3313", "1080" or "2116"
+    @return The signal velocity of the dielectric material (in mm/second).
+<DOC>
+public defn velocity (type:String) :
+  calculate_velocity(dielectric-constant(type))
+

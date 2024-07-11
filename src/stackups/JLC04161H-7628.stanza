@@ -16,7 +16,7 @@ defpackage jlc-pcb/JLC04161H-7628:
   import jlc-pcb/shared
 
 protected val stack = make-layer-stack("JLC04161H-7628", outers) where :
-  val core = FR4("7628", 1.065, "core")
+  val core = FR4("core", 1.065, "core")
   val prepreg = FR4("7628", 0.2104, "7628x1")
   val outers = 
     [ 
@@ -26,22 +26,37 @@ protected val stack = make-layer-stack("JLC04161H-7628", outers) where :
 
 public val stackup = create-pcb-stackup(stack)
 
+doc:\<DOC>
+  The parameters for the pcb-routing-structure and pcb-differential-routing-structure 
+  are retrieved from the PCB Impedance Calculator
+   - For Coplanar Single-Ended, the valid values for Impedance is from 20 to 90.
+   - For Coplanar Differential Pair, the valid values for Impedance is from 50 to 150
+   - `trace-width` comes from the "Trace Width" column of the Impedance Calculator
+   - `pair-spacing` comes from the "Trace Spacing" column of the Impedance Calculator
+   - `clearance` comes from the "Impedance trace to copper" column of the Impedance Calculator
+   - The function `velocity` calculate the velocity from the dielectric constant of the material for "7628"
+
+   Reference: https://jlcpcb.com/pcb-impedance-calculator
+<DOC>
+
+; For Coplanar Single-Ended
 #for ( 
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
   ):
   public pcb-routing-structure se-name :
     layer(Top):
-      trace-width = width-val
-      clearance = 0.508
-      velocity = 0.19e12
+      trace-width = width-val 
+      clearance = 0.508       ; "Impedance trace to copper" at jlcpcb.com
+      velocity = velocity("7628")
       insertion-loss = 0.004
     layer(Bottom):
       trace-width = width-val
       clearance = 0.508
-      velocity = 0.19e12
+      velocity = velocity("7628")
       insertion-loss = 0.004
-      
+
+; For Coplanar Differential Pair
 #for (
   dp-name in [DP-50, DP-75, DP-100],
   width-val in [0.8367, 0.4018, 0.2037],
@@ -50,15 +65,15 @@ public val stackup = create-pcb-stackup(stack)
   public pcb-differential-routing-structure dp-name:
     layer(Top):
       trace-width = width-val
-      pair-spacing = space-val
-      clearance = 0.2032
-      velocity = 0.19e12
+      pair-spacing = space-val ; "Trace Spacing" at jlcpcb.com
+      clearance = 0.2032       ; "Impedance trace to copper" at jlcpcb.com
+      velocity = velocity("7628")
       insertion-loss = 0.003
 
     layer(Bottom):
       trace-width = width-val
       pair-spacing = space-val
       clearance = 0.2032
-      velocity = 0.19e12
+      velocity = velocity("7628")
       insertion-loss = 0.003
 

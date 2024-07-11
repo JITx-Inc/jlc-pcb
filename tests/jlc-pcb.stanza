@@ -20,7 +20,7 @@ deftest make-JLC04161H-7628 :
 
   val test-stack = jlc-pcb/JLC04161H-7628/stack
   verify-layers(test-stack, top-layers) where :
-    val core = FR4("7628", 1.065, "core")
+    val core = FR4("core", 1.065, "core")
     val prepreg = FR4("7628", 0.2104, "7628x1")
     val top-layers = 
       [ 
@@ -45,7 +45,16 @@ deftest make-JLC04161H-7628B-from-name :
   ;val stmts = statements(test-stackup)
   ;println(stmts)
 
-deftest make-rules :
+;TODO: print-def for pcb-routing-structure does not work
+deftest test-routing-structure :
+  val test-routing = jlc-pcb/JLC04161H-7628/SE-50
+  print-def(test-routing)
+  ; => pcb-routing-structure D78SE-50
+  ;    name = SE-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-basic-rules :
   val test-rules = jlc-pcb/basic-rules/rules
   ;print-def(test-rules)
   ;println(clearances(test-rules))
