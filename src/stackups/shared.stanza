@@ -198,13 +198,21 @@ public defn is-valid-stackup (name:String) :
       ;TODO
     ]
 
-defn dialectric-coefficient (type:PrepregType) -> Double :
+defn dialectric-coefficient (type:PrepregType|String) -> Double :
   switch {type == _} :
+    "core"   : 4.6
     \|7628| : 4.4
     \|3313| : 4.1
     \|1080| : 3.91
     \|2116| : 4.16
-  
+
+public val FR4-Material-Core = DielectricMaterial(
+    name = "FR4 Core"
+    description = "FR4 Core"
+    dielectric-coefficient = dialectric-coefficient("core")  ; @ 1GHz
+    loss-tangent = 0.25 ; @ 1GHz
+  )
+
 public val FR4-Material-3313 = DielectricMaterial(
     name = "FR4 (7628)"
     description = "FR4 for JLC 3313"
@@ -234,7 +242,10 @@ public val FR4-Material-2116 = DielectricMaterial(
   )
 
 public defn FR4 (type:String, thickness:Double, name:String) -> LayerSpec :
-  FR4(to-prepreg-type(type), thickness, name)
+  if type == "core" :
+    FR4(thickness, FR4-Material-Core, name = name)
+  else :
+    FR4(to-prepreg-type(type), thickness, name)
 
 public defn FR4 (type:PrepregType, thickness:Double, name:String) -> LayerSpec :
   val material = switch {type == _} :

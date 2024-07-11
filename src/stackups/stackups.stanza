@@ -60,7 +60,7 @@ doc:\<DOC>
 <DOC>
 defn retrieve-4-layer-dialectrics (name:String) -> [LayerSpec Tuple<LayerSpec>]:
   val stackup-property = to-stackup-property(name)
-  [FR4(type(stackup-property), core-thickness, "core") prepregs] where :
+  [FR4("core", core-thickness, "core") prepregs] where :
     val [core-thickness prepregs] = switch {name == _}:
       ;------ 4-layer stackups ------
       ;-- JLC04**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
