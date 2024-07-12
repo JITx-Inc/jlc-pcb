@@ -24,6 +24,8 @@ defn verify-layers-for-JLC04161H-7628 (stack:LayerStack) :
         core
       ]
 
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628/stack,
+; created using make-layer-stack directly
 deftest make-JLC04161H-7628 :
   ;Create pcb-stackup
   val test-stackup = jlc-pcb/JLC04161H-7628/stackup
@@ -65,6 +67,13 @@ defn verify-layers-for-JLC04161H-7628A (stack:LayerStack) :
       ]
 
 ; two adjacent prepreg layers
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628A/stack
+deftest make-JLC04161H-7628A :
+  val test-stack = jlc-pcb/JLC04161H-7628A/stack
+  verify-layers-for-JLC04161H-7628A(test-stack)
+
+; two adjacent prepreg layers
+;Verify the make-layer-stack-from-name function for "JLC04161H-7628A"
 deftest make-JLC04161H-7628A-from-name :
   val test-stack = make-layer-stack-from-name("JLC04161H-7628A")
   verify-layers-for-JLC04161H-7628A(test-stack)
@@ -86,6 +95,13 @@ defn verify-layers-for-JLC04161H-7628B (stack:LayerStack) :
       ]
 
 ; three adjacent prepreg layers
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628B/stack
+deftest make-JLC04161H-7628B :
+  val test-stack = jlc-pcb/JLC04161H-7628B/stack
+  verify-layers-for-JLC04161H-7628B(test-stack)
+
+; three adjacent prepreg layers
+;Verify the make-layer-stack-from-name function for "JLC04161H-7628B"
 deftest make-JLC04161H-7628B-from-name :
   val test-stack = make-layer-stack-from-name("JLC04161H-7628B")
   verify-layers-for-JLC04161H-7628B(test-stack)
@@ -106,10 +122,14 @@ defn verify-layers-for-JLC06161H-7628 (stack:LayerStack) :
         prepregA
       ]
 
+; 6-layer stack
+;Verify the LayerStack in jlc-pcb/JLC06161H-7628/stack
 deftest make-JLC06161H-7628 :
   val test-stack = jlc-pcb/JLC06161H-7628/stack
   verify-layers-for-JLC06161H-7628(test-stack)
 
+; 6-layer stack
+;Verify the make-layer-stack-from-name function for "JLC06161H-7628"
 deftest make-JLC06161H-7628-from-name :
   val test-stack = make-layer-stack-from-name("JLC06161H-7628")
   verify-layers-for-JLC06161H-7628(test-stack)
@@ -133,17 +153,18 @@ defn verify-layers-for-JLC06161H-1080B (stack:LayerStack) :
       ]
 
 ;Two pregpreg layers in the middle
+;Verify the LayerStack in jlc-pcb/JLC06161H-1080B/stack
 deftest make-JLC06161H-1080B :
   val test-stack = jlc-pcb/JLC06161H-1080B/stack
   verify-layers-for-JLC06161H-1080B(test-stack)
 
 ;Two pregpreg layers in the middle
+;Verify the make-layer-stack-from-name function for "JLC06161H-1080B"
 deftest make-JLC06161H-1080B-from-name :
   val test-stack = make-layer-stack-from-name("JLC06161H-1080B")
   verify-layers-for-JLC06161H-1080B(test-stack)
 
 ;Even number of layers
-; "JLC06201H-3313A": [0.7 [FR4(\|2116|, 0.1164, "2116*1")] [FR4(\|3313|, 0.0994, "3313*1")] true]
 defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
   verify-layers(stack, top-layers, even-layers? = true) where :
     val core = FR4("core", 0.7, "core")
@@ -160,10 +181,26 @@ defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
       ]
 
 ;Even number of layers
+;Verify the LayerStack created directly with make-layer-stack
+deftest make-JLC06201H-3313A :
+  val test-stack = make-layer-stack("JLC06201H-3313A", outers) where :
+    val core = FR4("core", 0.7, "core")
+    val prepreg = FR4("2116", 0.1164, "2116*1")
+    val prepregA = FR4("3313", 0.0994, "3313*1")
+    val outers =
+      [
+        [copper-35um prepreg]
+        [copper-15_2um core]
+        copper-15_2um
+        prepregA       ; => two layers of prepregA in the center
+      ]
+  verify-layers-for-JLC06201H-3313A(test-stack)
+
+;Even number of layers
+;Verify the make-layer-stack-from-name function for "JLC06201H-3313A"
 deftest make-JLC06201H-3313A-from-name :
   val test-stack = make-layer-stack-from-name("JLC06201H-3313A")
   verify-layers-for-JLC06201H-3313A(test-stack)
-
 
 ;======== pcb-routing-structure and pcb-rules ========
 ;TODO: print-def for pcb-routing-structure does not work
