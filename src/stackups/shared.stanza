@@ -332,17 +332,14 @@ public defn FR4 (type:PrepregType, thickness:Double, name:String) -> LayerSpec :
 
 doc:\<DOC>
     Calculate the signal propagation velocity 
+    
+    Example: calculate-velocity(4.5) = 0.14 x 10^12 = 0.14e12 mm/second
 
     @param epsilon_r (dielectric-constant): The relative permittivity of the material. Default is 4.5.
-
     @return The signal velocity in the FR4 material (in mm/second).
 <DOC>
 defn calculate_velocity (epsilon_r = 4.5) :
-    ;Speed of light in vacuum (mm/s)
-    val light-speed = 3.0e11
-    ;Calculate the signal velocity
-    val velocity = light-speed * (math/pow(epsilon_r -0.5)) ; equivalent to light-speed / (math/pow(epsilon_r 0.5)
-    velocity
+  jsl/si/physics/phase-velocity(epsilon_r) * 1000.0
 
 doc:\<DOC>
     Calculate the signal propagation velocity in FR4 material.
@@ -352,4 +349,3 @@ doc:\<DOC>
 <DOC>
 public defn velocity (type:String) :
   calculate_velocity(dielectric-constant(type))
-
