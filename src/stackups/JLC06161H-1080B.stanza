@@ -24,8 +24,7 @@ protected val stack = make-layer-stack("JLC06161H-1080B", outers) where :
     [ 
       [copper-35um prepreg]
       [copper-15_2um core]
-      copper-15_2um
-      [prepregA prepreg-core]
+      [copper-15_2um [prepregA prepreg-core]]
     ]
 
 public val stackup = create-pcb-stackup(stack)

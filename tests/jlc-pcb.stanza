@@ -183,7 +183,7 @@ defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
 ;Even number of layers
 ;Verify the LayerStack created directly with make-layer-stack
 deftest make-JLC06201H-3313A :
-  val test-stack = make-layer-stack("JLC06201H-3313A", outers) where :
+  val test-stack = make-layer-stack("JLC06201H-3313A", outers, even-layers? = true) where :
     val core = FR4("core", 0.7, "core")
     val prepreg = FR4("2116", 0.1164, "2116*1")
     val prepregA = FR4("3313", 0.0994, "3313*1")
@@ -191,8 +191,7 @@ deftest make-JLC06201H-3313A :
       [
         [copper-35um prepreg]
         [copper-15_2um core]
-        copper-15_2um
-        prepregA       ; => two layers of prepregA in the center
+        [copper-15_2um prepregA] ; => two layers of prepregA in the center
       ]
   verify-layers-for-JLC06201H-3313A(test-stack)
 
@@ -205,7 +204,7 @@ deftest make-JLC06201H-3313A-from-name :
 ;======== pcb-routing-structure and pcb-rules ========
 ;TODO: print-def for pcb-routing-structure does not work
 deftest test-routing-structure :
-  val test-routing = jlc-pcb/JLC04161H-7628/SE-50
+  val test-routing = jlc-pcb/JLC04161H-7628/SE-50()
   print-def(test-routing)
   ; => pcb-routing-structure D78SE-50
   ;    name = SE-50

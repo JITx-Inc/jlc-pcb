@@ -40,14 +40,15 @@ doc:\<DOC>
 <DOC>
 
 ; For Coplanar Single-Ended
+;  - width-val comes from the "Trace Width" column 
 #for ( 
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
   ):
-  public pcb-routing-structure se-name :
+  public pcb-routing-structure se-name (clearance:Double = 0.508) :
     layer(Top):
       trace-width = width-val 
-      clearance = 0.508       ; "Impedance trace to copper" at jlcpcb.com
+      clearance = clearance
       velocity = velocity("7628")
       insertion-loss = 0.004
     layer(Bottom):
@@ -57,16 +58,18 @@ doc:\<DOC>
       insertion-loss = 0.004
 
 ; For Coplanar Differential Pair
+;  - width-val comes from the "Trace Width" column 
+;  - space-val comes from the "Trace Spacing" column
 #for (
   dp-name in [DP-50, DP-75, DP-100],
   width-val in [0.8367, 0.4018, 0.2037],
   space-val in [0.2032, 0.2032, 0.2032]
   ):
-  public pcb-differential-routing-structure dp-name:
+  public pcb-differential-routing-structure dp-name (clearance:Double = 0.2032) :
     layer(Top):
       trace-width = width-val
-      pair-spacing = space-val ; "Trace Spacing" at jlcpcb.com
-      clearance = 0.2032       ; "Impedance trace to copper" at jlcpcb.com
+      pair-spacing = space-val
+      clearance = clearance
       velocity = velocity("7628")
       insertion-loss = 0.003
 

@@ -21,9 +21,7 @@ protected val stack = make-layer-stack("JLC04161H-7628B", outers) where :
   val prepregB = FR4("2116", 0.1164, "2116*1")
   val outers = 
     [ 
-      [copper-35um prepreg]
-      prepreg
-      prepregB
+      [copper-35um [prepreg prepreg prepregB]]
       [copper-15_2um core]
     ]
 

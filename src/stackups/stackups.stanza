@@ -17,32 +17,17 @@ public defn make-layer-stack-from-name (name:String) -> LayerStack:
     make-layer-stack(name, to-tuple $ outers) where :
       val [prepregs core] = retrieve-4-layer-dialectrics(name)
       val [outer-copper inner-copper] = retrieve-4-layer-coppers(name)
-      val outers = Vector<[LayerSpec LayerSpec]|LayerSpec>()
-      add(outers, [outer-copper prepregs[0]])
-      if length(prepregs) > 1 :
-        add-all(outers, prepregs[1 to false])
+      val outers = Vector<[LayerSpec LayerSpec]|[LayerSpec Tuple<LayerSpec>]>()
+      add(outers, [outer-copper prepregs])
       add(outers, [inner-copper core])
   else : ; num-layers(stackup-property) == 6
-    make-layer-stack(name, to-tuple $ outers) where :
+    make-layer-stack(name, to-tuple $ outers, even-layers? = even-layers?) where :
       val [outer-prepregs core inner-prepregs even-layers?] = retrieve-6-layer-dialectrics(name)
       val [outer-copper mid-copper inner-copper] = retrieve-6-layer-coppers(name)
-      val outers = Vector<[LayerSpec LayerSpec]|LayerSpec>()
-      add(outers, [outer-copper outer-prepregs[0]])
-      if length(outer-prepregs) > 1 :
-        add-all(outers, outer-prepregs[1 to false])
+      val outers = Vector<[LayerSpec LayerSpec]|[LayerSpec Tuple<LayerSpec>]>()
+      add(outers, [outer-copper outer-prepregs])
       add(outers, [mid-copper core])
-      if even-layers? : ; add each layer individually
-        add(outers, inner-copper)
-        add-all(outers, inner-prepregs)
-      else :
-        if length(inner-prepregs) == 3 :
-          add(outers, [inner-copper inner-prepregs[0]])
-          add(outers, [inner-prepregs[1] inner-prepregs[2]])
-        else if length(inner-prepregs) == 2 :
-          add(outers, inner-copper)
-          add(outers, [inner-prepregs[0] inner-prepregs[1]])
-        else if length(inner-prepregs) == 1 :
-          add(outers, [inner-copper inner-prepregs[0]])
+      add(outers, [inner-copper inner-prepregs])
 
 doc:\<DOC>
   Create the JLC-PCB stackup from its name, such as JLC04161H-7628.
