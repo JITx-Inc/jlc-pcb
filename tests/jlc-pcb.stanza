@@ -211,6 +211,14 @@ deftest test-routing-structure :
   ;      routing-layer(LayerIndex(0)) : ()
   ;      routing-layer(LayerIndex(0, Bottom)) : ()
 
+deftest test-differential-routing-structure :
+  val test-routing = jlc-pcb/JLC04161H-7628/DP-50()
+  print-def(test-routing)
+  ; => pcb-differential-routing-structure D78DP-50
+  ;    name = DP-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
 defn diff-clearances (a:Tuple<RuleClearance>, b:Tuple<RuleClearance>) -> Tuple<[RuleClearance|False RuleClearance]> :
   val diffs = Vector<[RuleClearance|False RuleClearance]>()
   val table = to-hashtable<ClearanceType,RuleClearance>(map({type(_0) => _0} a))

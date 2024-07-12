@@ -36,6 +36,10 @@ doc:\<DOC>
    - `clearance` comes from the "Impedance trace to copper" column of the Impedance Calculator
    - The function `velocity` calculate the velocity from the dielectric constant of the material for "7628"
 
+  Example Usage: 
+    To use the default clearance: jlc-pcb/JLC04161H-7628/SE-50()
+    To use the user-given clearance: jlc-pcb/JLC04161H-7628/SE-50(clearance = 0.5)
+
    Reference: https://jlcpcb.com/pcb-impedance-calculator
 <DOC>
 
@@ -45,7 +49,8 @@ doc:\<DOC>
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
   ):
-  public pcb-routing-structure se-name (clearance:Double = 0.508) :
+  public pcb-routing-structure se-name (
+      -- clearance:Double = 0.508) :
     layer(Top):
       trace-width = width-val 
       clearance = clearance
@@ -65,7 +70,8 @@ doc:\<DOC>
   width-val in [0.8367, 0.4018, 0.2037],
   space-val in [0.2032, 0.2032, 0.2032]
   ):
-  public pcb-differential-routing-structure dp-name (clearance:Double = 0.2032) :
+  public pcb-differential-routing-structure dp-name (
+      -- clearance:Double = 0.2032) :
     layer(Top):
       trace-width = width-val
       pair-spacing = space-val
