@@ -1,6 +1,7 @@
 #use-added-syntax(jitx,tests)
 defpackage jlc-pcb/tests/stackups :
   import core
+  import collections
   import jitx
   import jitx/commands
   import jsl/layerstack
@@ -54,9 +55,39 @@ deftest test-routing-structure :
   ;      routing-layer(LayerIndex(0)) : ()
   ;      routing-layer(LayerIndex(0, Bottom)) : ()
 
-deftest test-basic-rules :
+defn diff-clearances (a:Tuple<RuleClearance>, b:Tuple<RuleClearance>) -> Tuple<[RuleClearance|False RuleClearance]> :
+  val diffs = Vector<[RuleClearance|False RuleClearance]>()
+  val table = to-hashtable<ClearanceType,RuleClearance>(map({type(_0) => _0} a))
+  ;println("A => %_" % [qsort({to-int $ type(_)} a)])
+  ;println("B => %_" % [qsort({to-int $ type(_)} b)])
+  ;qsort({to-int $ type(_)} a) == qsort({to-int $ type(_)} b)
+  for rule in b do:
+    match(get?(table type(rule))):
+      (a:RuleClearance) :
+        if value(a) != value(rule) :
+          add(diffs, [a rule])
+      (a:False):
+        add(diffs, [false rule])
+  to-tuple $ diffs
+
+defn compare-clearances (a:Tuple<RuleClearance>, b:Tuple<RuleClearance>) :
+  ;println("A => %_" % [qsort({to-int $ type(_)} a)])
+  ;println("B => %_" % [qsort({to-int $ type(_)} b)])
+  qsort({to-int $ type(_)} a) == qsort({to-int $ type(_)} b)
+
+deftest test-basic-rules1 :
+  val test-base = jlc-pcb/basic-rules/jlcpcb-basic-rules-from-ocdb 
+  val test-rules = jlc-pcb/basic-rules/rules1
+  ;print-def(test-rules)
+  ;println(clearances(test-rules))
+  ;#EXPECT(clearances(test-rules) == clearances(test-base))
+  #EXPECT(compare-clearances(clearances(test-rules), clearances(test-base)))
+
+deftest test-basic-rules2 :
+  val test-base = jlc-pcb/basic-rules/rules2
   val test-rules = jlc-pcb/basic-rules/rules
   ;print-def(test-rules)
   ;println(clearances(test-rules))
-  #EXPECT(clearances(test-rules) == clearances(jlc-pcb/basic-rules/rules-direct))
-
+  ;#EXPECT(clearances(test-rules) == clearances(test-base))
+  ;#EXPECT(compare-clearances(clearances(test-rules), clearances(test-base)))
+  #EXPECT(empty? $ diff-clearances(clearances(test-rules), clearances(test-base)))

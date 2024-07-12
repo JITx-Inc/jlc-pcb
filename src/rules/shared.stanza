@@ -1,0 +1,339 @@
+#use-added-syntax(jitx)
+doc:\<DOC>
+  Shared data structures for JLC-PCB rules
+
+  Reference:
+    - Data for Rules: https://jlcpcb.com/capabilities/pcb-capabilities
+<DOC> 
+defpackage jlc-pcb/rules/shared:
+  import core
+  import collections
+  import jitx
+
+doc:\<DOC>
+  Rigit PCB Rules
+  Reference: https://jlcpcb.com/capabilities/pcb-capabilities
+<DOC>
+public val rigid-pcb-rules-table:HashTable<String,?> = to-hashtable<String,?> $ 
+  [
+    "PCB Specification" => to-hashtable<String,?> $ 
+      [
+        "Max. Dimension" => [400.0 500.0] ; width x height in mm
+        "Dimension Tolerance" => [-0.1 0.1] ; +/- 0.1mm
+          ; ±0.1mm(Precision) and ±0.2mm(Regular) for CNC routing, and ±0.4mm for V-scoring
+        "Board Thickness" => [0.4 2.5] ; 	0.4-2.5 mm
+        ; Thickness for FR4 are: 0.4/0.6/0.8/1.0/1.2/1.6/2.0 mm
+        ; (2.5 mm only available with 12 layers or more. )
+        "Thickness Tolerance (>= 1mm)" => [-0.1 0.1] ; +/- 10%
+          ; e.g. For the 1.6mm board thickness, the finished board thickness
+          ; ranges from 1.44mm(T-1.6×10%) to 1.76mm(T+1.6×10%)
+        "Thickness Tolerance (< 1mm)" => [-0.1 0.1] ; +/- 0.1mm
+          ; e.g. For the 0.8mm board thickness, the finished board thickness
+          ; ranges from 0.7mm(T-0.1) to 0.9mm(T+0.1).
+        "Finished Outer Layer Copper" => [1 2] ; 1 oz / 2 oz (35um / 70um)
+          ; Finished copper weight of outer layer is 1oz or 2oz.
+      ]
+    "Drill/Hole Size" => to-hashtable<String,?> $ 
+      [
+        "Drill Hole Size" => [0.15 6.30] ; 	0.15mm - 6.30mm
+          ; 1 & 2 Layer PCB: 0.3 - 6.3mm
+          ; Multi-Layer PCB: 0.15 - 6.3mm (0.15mm more costly)
+        "Drill Hole Size Tolerance" => [-0.08 0.13] ; +0.13/-0.08mm
+          ; e.g. for the 0.6mm hole size,
+          ; the finished hole size between 0.52mm to 0.73mm is acceptable.
+        "Blind/Buried Vias" => "Don't support"
+        "Min. Via hole size/diameter" => [0.15 0.25] ; 0.15mm / 0.25mm
+          ; - 1 & 2 Layer PCB: 0.3mm(hole size) / 0.5mm(diameter)
+          ; - Multi-Layer PCB: 0.15mm(Via hole size) / 0.25mm(Via diameter)
+          ;   ① Via diameter should be 0.1mm(0.15mm preferred) larger than Via hole size
+          ;   ② Preferred Min. Via hole size: 0.2mm
+        "PTH hole Size" => [0.20 6.35] ; 	0.20mm - 6.35mm
+          ; The annular ring size will be enlarged to 0.15mm in production.
+        "Pad Size" => 1.0 ; Minimum 1.0mm = 0.25 (ring) + 0.5 (hole) + 0.25 (ring)
+        "Pad Size (ring/hole)" => to-hashtable<String,?> $ 
+          [
+            "ring" => 0.25
+            "hole" => 0.5
+          ]
+          ; The pad size will be enlarged by 0.5mm than the hole size. 
+          ; The minimum size of annular ring around plated through hole pads is 0.25mm. 
+          ; If the recommended sizes are not respected then the pad will not be produced properly.
+        "Min. Non-plated holes" => 0.50 ; 0.50mm
+          ; The minimum NPTH dimension is 0.50mm, 
+          ; Please add the NPTH in the mechanical layer or keep out layer.
+        "NPTH" => 0.2 ; 0.2mm
+          ; We make NPTH via dry sealing film process, if customer would like a NPTH but around with pad/copper, 
+          ; our engineer will dig out around pad/copper about 0.2mm-0.25mm, 
+          ; otherwise the metal potion will be flowed into the hole and it becomes a PTH. 
+          ; (there will be no copper dig out optimization for single board).
+        "Min. Plated Slots" => 0.5 ; 0.5mm
+          ; The minimum plated slot width is 0.5mm, which is drawn with a pad.
+        "Min. Non-Plated Slots" => 1.0 ; 1.0mm
+          ; The minimum Non-Plated Slot Width is 1.0mm, 
+          ; please draw the slot outline in the mechanical layer(GML or GKO)
+        "Min. Castellated Holes" => 0.6 ; 0.60mm
+          ; A castellated pad includes a plated half-hole on the edge of a board, 
+          ; usually used on daughter PCB modules to solder to carrier boards.
+          ;  ① Hole diameter ≥ 0.6 mm
+          ;  ② Hole to board edge ≥ 1 mm
+          ;  ③ Min. board size 10 × 10 mm
+        "Hole size Tolerance (Plated)" => [-0.08 0.13] ; +0.13mm/-0.08mm
+          ; e.g. for the 1.00mm Plated hole, 
+          ; the finished hole size between 0.92mm to 1.13mm is acceptable.
+        "Hole size Tolerance (Non-Plated)" => [-0.2 0.2] ; ±0.2mm
+          ; e.g. for the 1.00mm Non-Plated hole, 
+          ; the finished hole size between 0.80mm to 1.20mm is acceptable.
+        "Rectangle Hole/Slot" => "Don't support"
+          ; Rectangle/Square Slots, we don't make rectangular or square plated holes,
+          ; only make oval or round plated slots.
+          ; For non-plated slots, rounded corner-rectangular or square slots are supported. 
+          ; The recommended minimum size is 3x3mm
+      ]
+    "Minimum Annular Ring" => to-hashtable<String,?> $ 
+      [
+        "Minimum Annular Ring" => [
+          "1oz Copper" => 0.13 ; 0.13mm
+          "2oz Copper" => 0.2  ; 0.2mm
+        ]
+        "PTH" => [
+          "1oz Copper" => 0.3 ; 0.3mm
+          "2oz Copper" => 0.3  ; 0.3mm
+        ]
+      ]
+    "Minimum Clearance" => to-hashtable<String,?> $ 
+      [
+        "Hole to hole clearance(Different nets)" => 0.5 ; 0.5mm
+        "Via to Via clearance(Same nets)" => 0.254 ; 0.254mm
+        "Pad to Pad clearance(Pad without hole, Different nets)" => 0.127 ; 0.127mm
+        "Pad to Pad clearance(Pad with hole, Different nets)" => 0.5 ; 0.5mm
+        "Via to Track" => 0.254 ; 0.254mm
+        "PTH to Track" => 0.33 ; 0.33mm
+        "NPTH to Track" => 0.254 ; 0.254mm
+        "Pad to Track" => 0.2 ; 0.2mm
+      ]
+    "Minimum trace width and spacing" => to-hashtable<String,?> $ 
+      [
+        "Min. Trace width" => to-hashtable<String,?> $ [
+          "1-2 Layers" => 0.127 ; 0.127mm
+          "4-6 Layers" => 0.09  ; 0.09mm
+          "2oz Copper weight" => 0.2 ; 0.2mm
+        ]
+        "Min. Spacing" => to-hashtable<String,?> $ [
+          "1-2 Layers" => 0.127 ; 0.127mm
+          "4-6 Layers" => 0.09  ; 0.09mm
+          "2oz Copper weight" => 0.2 ; 0.2mm
+        ]
+      ]
+    "BGA" => to-hashtable<String,?> $ 
+      [
+        "Min. BGA Pad Dimensions" => to-hashtable<String,?> $ [
+          "1/2 Layers" => 0.25 ; 0.25mm
+          "4/6 Layers" => 0.25 ; 0.25mm
+        ]
+        "Min. Distance Between BGA" => to-hashtable<String,?> $ [
+          "1/2 Layers" => 0.127 ; 0.127mm
+          "4/6 Layers" => 0.127 ; 0.127mm
+        ]
+      ]
+    "Solder Mask" => to-hashtable<String,?> $ 
+      [
+        "Soldermask Expansion" => 0.038 ; 0.038mm
+          ; 2 layer: Expansion ≥ 0.038 mm each side; 
+          ; Edge of opening to adjacent traces ≥ 0.05 mm.
+          ; Multilayer: No expansion required
+        "Min. Solder bridge" => 0.1 ; 0.10mm
+          ; 2 layers: 0.10 mm regular, 0.08 mm minimum (0.13 mm with black or white soldermask).
+          ; Multilayer: 0.08 mm (0.13 mm with black or white soldermask). 
+          ; Soldermask webs are possible between pads at least 4 mil apart.
+        "Via Covering" => "Epoxy Filled & Capped Copper paste Filled&Capped"
+          ; Via hole size: 0.2 to 0.5 mm
+          ; Annular ring: 0.05 mm minimum, 0.075 mm preferred
+          ; The via-in-pad must be placed more than 1.0 mm from regular PTHs or NPTHs
+          ; Learn More: https://jlcpcb.com/blog/32-Free-Via-in-Pad-on-6-20-Layer-PCBs-with-POFV
+        "Solder mask color" => "green, red, yellow, blue, white, and black."
+          ; We use LPI (Liquid Photo Imageable) solder mask. 
+          ; It is the most common type of mask used today.
+        "Solder mask dielectric constant" => 3.8
+        "Solder mask ink thickness" => [10.0 15.0] ; 10-15UM
+      ]
+    "Legend" => to-hashtable<String,?> $ 
+      [
+        "Minimum Line Width" => 0.153 ; 6 mil (0.153mm)
+          ; Characters width less than 6mil(0.153mm) will be unidentifiable.
+        "Minimum text height" => 1.0 ; 40 mil (1.0mm)
+          ; Characters height less than 40 mil(1.0mm) will be unidentifiable.
+        "Character width to height ratio" => [1 6] ; 1: 6
+          ; The preferred ratio of width to height is 1:6.
+        "Hollow-carved Character width to height ratio" =>  [1 6] ; 1: 6
+          ; The preferred ratio of width to height is 1:6
+        "Pad To Silkscreen" => 0.15 ; 0.15mm
+          ; The Minimum Distance Between Pad and Silkscreen is 0.15mm.   
+      ]
+    "Board Outlines" => to-hashtable<String,?> $ 
+      [
+        "Trace to Outline(Routed)" => 0.3 ; 0.3mm
+          ; ① Copper to board edge ≥ 0.3 mm
+          ; ② Copper to milled slot ≥ 0.3 mm
+          ; ③ Routed outline tolerance: ± 0.2 mm (regular), ± 0.1 mm (precision)
+        "Trace to V-cut line(V-Cut Panel)" => 0.4 ; 0.4mm
+          ; ① Copper to V-cut line ≥ 0.4 mm
+          ; ② V-cut outline tolerance ± 0.4 mm (board thickness ≥ 0.6 mm）
+          ; ③ Zero spacing between sub-boards by default. If using V-cuts on two opposing edges only, 1.6 or 2.0 mm spacing can be used on the other edges.
+        "Mouse Bites Panel" => 0.3 ; 0.3mm
+          ; ① Copper to routed parts of edges ≥ 0.3 mm
+          ; ② Routed outline tolerance: ± 0.2 mm (regular), ± 0.1 mm (precision)
+          ; ③ 1.6 or 2.0mm spacing between sub-boards by default.
+          ; ④ Stamp-like edges will remain after separation
+          ; ⑤ Minimum edge rail is 3mm in width. For PCB assembly, use 5mm edge rails, 1mm fiducials placed, 2mm tooling holes, 3.85mm from fiducial to board edge.
+      ]
+    "Panelization" => to-hashtable<String,?> $ 
+      [
+        "Panelization without space" => 0.0 ; 0mm
+          ; The space between boards is 0mm.
+        "Panelization with space" => 2.0 ; 2mm
+          ; Make sure the space between boards should be ≥2mm,
+          ; otherwise it will be hard to process for rounding.
+        "Panelized Round board" => [20.0 20.0] ; 	≥20mmx20mm
+          ; The single round board size should be≥20mmx20mm.
+          ; Panelize with stamp holes and add tooling strips on four board edges
+        "Panelized castellated holes board" => "Panelize with stamp holes and add tooling strips on four board edges"
+          ; The distance between castellated hole and board corner should be larger than 2mm.
+          ; Recommended diameter of stamp hole is 0.5mm-0.8mm;
+          ; Recommended distance between the two stamp holes is 0.2-0.3mm
+        "Min. Width of Breakaway Tab" => 4 ; 4mm
+          ; The minimum width of breakaway tab is 4mm. 
+          ; For breakaway with mouse-bites, the minimum width is 5mm.
+        "Min. Edge Rails" => 3 ; 3mm
+          ; If choosing panel by JLCPCB, we will add 5mm edge rails on both sides by default.
+      ]
+  ]
+
+
+public defstruct RulesProp <: Equalable :
+  board-rules:BoardRules
+  copper-rules:CopperRules
+  soldermask-rules:SoldermaskRules
+  silkscreen-rules:SilkscreenRules
+  pad-rules:PadRules
+  via-rules:ViaRules
+  pitch-rules:PitchRules
+with:
+  equalable
+  printer
+
+doc:\<DOC>
+  Create pcb-rules from the Rules datastructure
+<DOC>
+public defn create-pcb-rules (rules:RulesProp) -> Rules :
+  pcb-rules custom-rules :
+    make-board-rules(rules)
+    make-copper-rules(rules)
+    make-soldermask-rules(rules)
+    make-silkscreen-rules(rules)
+    make-via-rules(rules)
+    make-pad-rules(rules)
+    make-pitch-rules(rules)
+  custom-rules
+
+public defstruct BoardRules <: Equalable :
+  max-width:Double
+  max-height:Double
+with:
+  equalable
+  printer
+
+public defstruct CopperRules <: Equalable :
+  min-width:Double
+  min-copper-space:Double
+  min-hole-space:Double
+  min-edge-space:Double
+with:
+  equalable
+  printer
+
+public defstruct SoldermaskRules <: Equalable :
+  registration:Double
+  min-opening:Double
+  min-bridge:Double
+with:
+  equalable
+  printer
+
+public defstruct SilkscreenRules <: Equalable :
+  min-width:Double 
+  min-soldermask-space:Double 
+  min-text-height:Double
+with:
+  equalable
+  printer
+
+public defstruct PadRules <: Equalable :
+  min-hole-to-hole:Double
+  min-pth-pin-solder-clearance:Double
+  min-th-pad-expand-outer:Double
+with:
+  equalable
+  printer
+
+public defstruct ViaRules <: Equalable :
+  min-annular-ring:Double
+  min-drill-diameter:Double
+with:
+  equalable
+  printer
+
+;Pitch (center-to-center) between legs/pads of a component
+public defstruct PitchRules <: Equalable :
+  min-pitch-leaded:Double
+  min-pitch-bga:Double
+with:
+  equalable
+  printer
+
+public defn make-board-rules (rules:RulesProp) :
+  val board-rules = board-rules(rules)
+  inside pcb-rules :
+    max-board-width = max-width(board-rules)
+    max-board-height = max-height(board-rules)
+
+public defn make-copper-rules (rules:RulesProp) :
+  val copper-rules = copper-rules(rules)
+  inside pcb-rules :
+    min-copper-width = min-width(copper-rules)
+    min-copper-copper-space = min-copper-space(copper-rules)
+    min-copper-hole-space = min-hole-space(copper-rules)
+    min-copper-edge-space = min-edge-space(copper-rules)
+
+public defn make-soldermask-rules (rules:RulesProp):
+  val sm-rules = soldermask-rules(rules)
+  inside pcb-rules :
+    solder-mask-registration = registration(sm-rules)
+    min-soldermask-opening = min-opening(sm-rules)
+    min-soldermask-bridge = min-bridge(sm-rules)
+
+public defn make-silkscreen-rules (rules:RulesProp) :
+  val silk-rules = silkscreen-rules(rules)
+  inside pcb-rules :
+    min-silkscreen-width = min-width(silk-rules)
+    min-silk-solder-mask-space = min-soldermask-space(silk-rules)
+    min-silkscreen-text-height = min-text-height(silk-rules)
+
+public defn make-pad-rules (rules:RulesProp) :
+  val pad-rules = pad-rules(rules)
+  inside pcb-rules :
+    min-hole-to-hole = min-hole-to-hole(pad-rules)
+    min-pth-pin-solder-clearance = min-pth-pin-solder-clearance(pad-rules)
+    min-th-pad-expand-outer = min-th-pad-expand-outer(pad-rules)
+
+public defn make-via-rules (rules:RulesProp) : 
+  val via-rules = via-rules(rules)
+  inside pcb-rules :
+    min-annular-ring = min-annular-ring(via-rules)
+    min-drill-diameter = min-drill-diameter(via-rules)
+
+public defn make-pitch-rules (rules:RulesProp) : 
+  val pitch-rules = pitch-rules(rules)
+  inside pcb-rules :
+    min-pitch-leaded = min-pitch-leaded(pitch-rules)
+    min-pitch-bga = min-pitch-bga(pitch-rules)
+

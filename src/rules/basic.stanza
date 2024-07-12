@@ -11,47 +11,168 @@ doc:\<DOC>
 <DOC>
 defpackage jlc-pcb/basic-rules :
   import core
+  import collections
   import jitx
   import jlc-pcb/rules/shared
 
-public pcb-rules rules-direct :
-  ;copper rules
-  min-copper-width = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
-  min-copper-copper-space = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
-  min-copper-hole-space = 0.254 ; 10mil
-  min-copper-edge-space = 0.2 ; 7.87mil
-  ;soldermask rules
-  solder-mask-registration = 0.05
-  min-soldermask-opening = 0.10 ; solder bridge - solder mask opening/expansion DIAMETER
-  min-soldermask-bridge = 0.2 ; green
-  ;silkscreen rules
-  min-silkscreen-width = 0.153 ; 6mil
-  min-silk-solder-mask-space = 0.15
-  min-silkscreen-text-height = 0.80
-  ;via rules
-  min-annular-ring = 0.215 ; 7.87mil
-  min-drill-diameter = 0.3 ; 7.87mil
-  min-pitch-leaded = 0.3 ; 11.81mil (guess)
-  min-pitch-bga = 0.377 ; 14.84mil
-  ;pad rules
-  min-hole-to-hole = 0.5 
-  min-pth-pin-solder-clearance = 3.0 ; TODO: lookup actual value
-  min-th-pad-expand-outer = 0.26 
-  ;board rules
-  max-board-width = 350.0 ; 15.74in
-  max-board-height = 320.0 ; 19.68in
-
+doc:\<DOC>
+  pcb-rules with parameters retrieved from JLCPCB.com at https://jlcpcb.com/capabilities/Capabilities
+<DOC>
 public val rules-prop = RulesProp(board-rules,
                          copper-rules,
                          soldermask-rules,
                          silkscreen-rules,
                          pad-rules,
-                         via-rules) where :
+                         via-rules,
+                         pitch-rules) where :
+  val board-rules = retrieve-board-rules(rigid-pcb-rules-table)
+  val copper-rules = retrieve-copper-rules(rigid-pcb-rules-table)
+  val soldermask-rules = retrieve-soldermask-rules(rigid-pcb-rules-table)
+  val silkscreen-rules = retrieve-silkscreen-rules(rigid-pcb-rules-table)
+  val pad-rules = retrieve-pad-rules(rigid-pcb-rules-table)
+  val via-rules = retrieve-via-rules(rigid-pcb-rules-table)
+  val pitch-rules = retrieve-pitch-rules(rigid-pcb-rules-table)
+
+public val rules = create-pcb-rules(rules-prop)
+
+defn retrieve-board-rules (rules-table:HashTable<String,?>) :
+  BoardRules(max-width, max-height) where :
+    val [max-width max-height]= rules-table["PCB Specification"]["Max. Dimension"]
+
+defn retrieve-copper-rules (rules-table:HashTable<String,?>) :
+  CopperRules(min-width, min-copper-space, min-hole-space, min-edge-space) where :
+    ;min-trace-width = min trace width
+    val min-width = rules-table["Minimum trace width and spacing"]["Min. Trace width"]["4-6 Layers"]
+    ;min-copper-copper-space
+    val min-copper-space = maximum([min-trace-spacing, pad-to-pad-clearance]) where :
+      val min-trace-spacing = rules-table["Minimum trace width and spacing"]["Min. Spacing"]["4-6 Layers"]
+      val pad-to-pad-clearance = rules-table["Minimum Clearance"]["Pad to Pad clearance(Pad without hole, Different nets)"]
+    val min-hole-space = rules-table["Minimum Clearance"]["Via to Track"]
+    ; copper to edge of board
+    val min-edge-space = rules-table["Board Outlines"]["Trace to Outline(Routed)"]
+
+defn retrieve-soldermask-rules (rules-table:HashTable<String,?>) :
+  SoldermaskRules(registration, min-opening, min-bridge) where :
+    ;solder-mask-registration = soldermask expansion
+    val registration = rules-table["Solder Mask"]["Soldermask Expansion"]
+    ;min-soldermask-opening = solder bridge - solder mask opening/expansion DIAMETER
+    val min-opening = 0.1 ; don't know what it is
+    val min-bridge = rules-table["Solder Mask"]["Min. Solder bridge"]
+
+defn retrieve-silkscreen-rules (rules-table:HashTable<String,?>) :
+  SilkscreenRules(min-width, min-soldermask-space, min-text-height) where :
+    val min-width = rules-table["Legend"]["Minimum Line Width"]
+    val min-soldermask-space = rules-table["Legend"]["Pad To Silkscreen"]
+    val min-text-height = rules-table["Legend"]["Minimum text height"]
+
+defn retrieve-pad-rules (rules-table:HashTable<String,?>) :
+  PadRules(min-hole-to-hole, min-pth-pin-solder-clearance, min-th-pad-expand-outer) where :
+    val min-hole-to-hole = rules-table["Minimum Clearance"]["Pad to Pad clearance(Pad with hole, Different nets)"]
+    val min-pth-pin-solder-clearance = 3.0 ; don't know what it is
+    val min-th-pad-expand-outer = rules-table["Drill/Hole Size"]["Pad Size (ring/hole)"]["ring"]
+
+defn retrieve-via-rules (rules-table:HashTable<String,?>) :
+  ViaRules(min-annular-ring, min-drill-diameter) where :
+    val min-annular-ring = maximum(map(value copper-to-min-ring-kvs)) where :
+      val copper-to-min-ring-kvs:Tuple<KeyValue<String,Double>> = rules-table["Minimum Annular Ring"]["Minimum Annular Ring"]
+    ; min-drill-diameter => min of (Drill Hole Size, Via hole size, PTH hole size)
+    val min-drill-diameter = minimum([drill-hole-size, via-hole-size, pth-hole-size]) where :
+      val drill-hole-size = rules-table["Drill/Hole Size"]["Drill Hole Size"][0]
+      val via-hole-size = rules-table["Drill/Hole Size"]["Min. Via hole size/diameter"][0]
+      val pth-hole-size = rules-table["Drill/Hole Size"]["PTH hole Size"][0]
+
+defn retrieve-pitch-rules (rules-table:HashTable<String,?>) :
+  PitchRules(min-pitch-leaded, min-pitch-bga) where :
+    ;Pitch (center-to-center) between legs of a component
+    val min-pitch-leaded = 0.3 ; not found
+    ;distance between center of two pads => pad diameter + gap between pads
+    val min-pitch-bga = (pad-diameter + gap-between-pads) where :
+      val pad-diameter = rules-table["BGA"]["Min. BGA Pad Dimensions"]["4/6 Layers"]
+      val gap-between-pads = rules-table["BGA"]["Min. Distance Between BGA"]["4/6 Layers"]
+
+;---------------------------------------------------------------------------
+;    Testing DATA for Sanity Check
+;---------------------------------------------------------------------------
+; pcb-rules jlcpcb-basic-rules from open-components-database/manufacturers/rules.stanza
+public pcb-rules jlcpcb-basic-rules-from-ocdb :
+  ;copper rules
+  min-copper-width = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
+     ; => "Min Trace width" 
+  min-copper-copper-space = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
+      ; => pad to pad clearance (pad without hole, different nets)
+      ; => "Min Spacing" under "Minimum trace width and spacing"
+      ; => take the max of above two.
+  min-copper-hole-space = 0.254 ; 10mil ; => via to track  
+  min-copper-edge-space = 0.2 ; 7.87mil ; copper to edge of board
+    ; => "Trace to Outline" under "Board Outline"
+  ;soldermask rules
+  solder-mask-registration = 0.05 ; => soldermask expansion
+  min-soldermask-opening = 0.10 ; solder bridge - solder mask opening/expansion DIAMETER
+    ; => cannot find it
+  min-soldermask-bridge = 0.2 ; green => "Min. Solder bridge"
+  ;silkscreen rules
+  min-silkscreen-width = 0.153 ; 6mil => "Min Line width" under "Legend"
+  min-silk-solder-mask-space = 0.15  ; => "Pad to silkscreen"
+  min-silkscreen-text-height = 0.80  ; => "Minimum text height"
+  ;via rules
+  min-annular-ring = 0.215 ; 7.87mil ;=> larger of two copper
+  min-drill-diameter = 0.3 ; 7.87mil ;=> PTH under annular ring
+    ; => min of (Drill Hole Size, Via hole size, PTH hole size)
+  ;pitch rules
+  min-pitch-leaded = 0.3 ; 11.81mil (guess) ; => pitch (center-to-center) between legs of a component
+    ; => not found
+  min-pitch-bga = 0.377 ; 14.84mil 
+    ; => distance between center of two pads => pad diameter + gap between pads
+  ;pad rules
+  min-hole-to-hole = 0.5 ; => pad to pad clearance (pad with hole, different nets)
+  min-pth-pin-solder-clearance = 3.0 ; TODO: lookup actual value
+    ; => not found
+  min-th-pad-expand-outer = 0.26 ; => Pad size 0.25mm (outer ring width)
+  ;board rules
+  max-board-width = 350.0 ; 15.74in ; => "Max Dimension" under "PCB Specification"
+  max-board-height = 320.0 ; 19.68in
+
+;LFCHAO - for testing only
+; same as rules-direct, but use RulesProp to create
+public val rules-prop1 = RulesProp(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
   val board-rules = BoardRules(350.0, 320.0)
   val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
   val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
   val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
   val pad-rules = PadRules(0.5, 3.0, 0.26)
-  val via-rules = ViaRules(0.215, 0.3, 0.3, 0.377)
+  val via-rules = ViaRules(0.215, 0.3)
+  val pitch-rules = PitchRules(0.3, 0.377)
 
-public val rules = create-pcb-rules(rules-prop)
+public val rules1 = create-pcb-rules(rules-prop1)
+
+; LFCHAO - as a comparison between jlcpcb-basic-rules-from-ocdb and the updated rules from jlcpcb.com
+; updated with data from jlcpcb.com
+public val rules-prop2 = RulesProp(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+  ;val board-rules = BoardRules(350.0, 320.0)
+  val board-rules = BoardRules(400.0, 500.0) ; from jlcpcb.com
+  ;val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
+  val copper-rules = CopperRules(0.09, 0.127, 0.254, 0.3) ; from jlcpcb.com
+  ;val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
+  val soldermask-rules = SoldermaskRules(0.038, 0.10, 0.1) ; from jlcpcb.com
+  ;val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
+  val silkscreen-rules = SilkscreenRules(0.153, 0.15, 1.0) ; from jlcpcb.com
+  ;val pad-rules = PadRules(0.5, 3.0, 0.26)
+  val pad-rules = PadRules(0.5, 3.0, 0.25) ; from jlcpcb.com
+  ;val via-rules = ViaRules(0.215, 0.3)
+  val via-rules = ViaRules(0.2, 0.15) ; from jlcpcb.com
+  val pitch-rules = PitchRules(0.3, 0.377)
+
+public val rules2 = create-pcb-rules(rules-prop2)
+

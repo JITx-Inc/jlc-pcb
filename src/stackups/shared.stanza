@@ -40,8 +40,8 @@ public defenum WeightType :
   \|2oz|
 
 defn to-weight-type (c:Char) :
-  switch {c == _} :
-    'H': \|0.5oz|
+  switch(c) :
+    'H': \|0.5oz| 
     '1': \|1oz|
     '2': \|2oz|
 
