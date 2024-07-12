@@ -17,8 +17,8 @@ defpackage jlc-pcb/shared:
   import jitx
   import jsl/layerstack
 
-public val copper-15_2um = Copper(0.0152, name = "cu15_2")
-public val copper-35um = Copper(0.035, name = "cu35")
+public val copper-15_2um = Copper(0.0152)
+public val copper-35um = Copper(0.035)
 
 public defenum PrepregType :
   \|7628|
@@ -27,7 +27,7 @@ public defenum PrepregType :
   \|2116|
 
 defn to-prepreg-type (name:String) -> PrepregType :
-  switch {name == _} :
+  switch(name) :
     "7628" : \|7628|
     "3313" : \|3313|
     "1080" : \|1080|
@@ -192,7 +192,80 @@ public defn is-valid-stackup (name:String) :
       "JLC042022-3313" 
       ;------ 6-layer stackups ------
       ;-- JLC06**1H : outer-copper-weight = 1oz; inner-copper-weight = 0.5oz
-      ;TODO
+      ; JLC06121H : thickness 1.2mm
+      "JLC06121H-7628"
+      "JLC06121H-3313"
+      "JLC06121H-1080"
+      "JLC06121H-7628A"
+      "JLC06121H-1080A"
+      "JLC06121H-2116A"
+      ; JLC06161H : thickness 1.6mm
+      "JLC06161H-7628"
+      "JLC06161H-3313"
+      "JLC06161H-1080"
+      "JLC06161H-3313A"
+      "JLC06161H-1080A"
+      "JLC06161H-1080B"
+      "JLC06161H-2116A"
+      ; JLC06201H : thickness 2.0mm
+      "JLC06201H-7628"
+      "JLC06201H-3313"
+      "JLC06201H-1080"
+      "JLC06201H-3313A"
+      ;-- JLC06**11 : outer-copper-weight = 1oz; inner-copper-weight = 1oz
+      ; JLC061211 : thickness 1.2mm
+      "JLC061211-7628"
+      "JLC061211-1080A"
+      "JLC061211-1080B"
+      "JLC061211-2116"
+      "JLC061211-2116A"
+      "JLC061211-2116B"
+      ; JLC061211 : thickness 1.6mm
+      "JLC061611-7628"
+      "JLC061611-3313A"
+      "JLC061611-3313B"
+      "JLC061611-1080A"
+      "JLC061611-1080B"
+      "JLC061611-1080C"
+      "JLC061611-1080D"
+      "JLC061611-1080E"
+      "JLC061611-2116"
+      ; JLC062011 : thickness 2.0mm
+      "JLC062011-7628"
+      "JLC062011-3313"
+      "JLC062011-1080"
+      "JLC062011-1080A"
+      "JLC062011-2116A"
+      ;-- JLC06**12 : outer-copper-weight = 1oz; inner-copper-weight = 2oz
+      ; JLC061212 : thickness 1.2mm
+      "JLC061212-1080"
+      ; JLC061612 : thickness 1.6mm
+      "JLC061612-1080"
+      ; JLC062012 : thickness 2.0mm
+      "JLC062012-1080"
+      ;-- JLC06**2H : outer-copper-weight = 2oz; inner-copper-weight = 0.5oz
+      ; JLC06122H : thickness 1.2mm
+      "JLC06122H-3313"
+      ; JLC06162H : thickness 1.6mm
+      "JLC06162H-3313"
+      ; JLC06202H : thickness 2.0mm
+      "JLC06202H-3313"
+      ;-- JLC06**21 : outer-copper-weight = 2oz; inner-copper-weight = 1oz
+      ; JLC061221 : thickness 1.2mm
+      "JLC061221-3313"
+      ; JLC061621 : thickness 1.6mm
+      "JLC061621-7628"
+      "JLC061621-3313"
+      ; JLC062021 : thickness 2.0mm
+      "JLC062021-7628"
+      ;-- JLC06**22 : outer-copper-weight = 2oz; inner-copper-weight = 2oz
+      ; JLC061222 : thickness 1.2mm
+      "JLC061222-1080"
+      ; JLC061622 : thickness 1.6mm
+      "JLC061622-1080"
+      ; JLC062022 : thickness 2.0mm
+      "JLC062022-1080"
+      "JLC062022-1080A"
     ]
 
 defn dielectric-constant (type:String) -> Double :
@@ -202,7 +275,7 @@ defn dielectric-constant (type:String) -> Double :
     dielectric-constant(to-prepreg-type(type))
 
 defn dielectric-constant (type:PrepregType) -> Double :
-  switch {type == _} :
+  switch(type) :
     \|7628| : 4.4
     \|3313| : 4.1
     \|1080| : 3.91
@@ -250,7 +323,7 @@ public defn FR4 (type:String, thickness:Double, name:String) -> LayerSpec :
     FR4(to-prepreg-type(type), thickness, name)
 
 public defn FR4 (type:PrepregType, thickness:Double, name:String) -> LayerSpec :
-  val material = switch {type == _} :
+  val material = switch(type) :
     \|7628| : FR4-Material-7628
     \|3313| : FR4-Material-3313
     \|1080| : FR4-Material-1080

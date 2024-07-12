@@ -1,6 +1,6 @@
 #use-added-syntax(jitx)
 doc:\<DOC>
-  Create the JLC04161H-7628 stakup.
+  Create the JLC04161H-2116B stakup.
     - 4-layer impedance control stackup
     - 1.6mm thickness
     - 1oz outer copper weight
@@ -9,18 +9,20 @@ doc:\<DOC>
   Note: All metrics are in mm.
   Reference: https://jlcpcb.com/impedance
 <DOC>
-defpackage jlc-pcb/JLC04161H-7628:
+defpackage jlc-pcb/JLC04161H-2116B:
   import core
   import jitx
   import jsl/layerstack
   import jlc-pcb/shared
 
-protected val stack = make-layer-stack("JLC04161H-7628", outers) where :
-  val core = FR4("core", 1.065, "core")
-  val prepreg = FR4("7628", 0.2104, "7628*1")
+protected val stack = make-layer-stack("JLC04161H-2116B", outers) where :
+  val core = FR4("core", 0.865, "core")
+  val prepreg = FR4("2116", 0.124, "2116*1")
+  val prepregA = FR4("7628", 0.2104, "7628*1")
   val outers = 
     [ 
       [copper-35um prepreg]
+      prepregA
       [copper-15_2um core]
     ]
 
@@ -42,7 +44,7 @@ doc:\<DOC>
 ; For Coplanar Single-Ended
 #for ( 
   se-name in [SE-50, SE-75]
-  width-val in [0.3424, 0.1311]
+  width-val in [0.5624, 0.2258]
   ):
   public pcb-routing-structure se-name :
     layer(Top):
@@ -59,7 +61,7 @@ doc:\<DOC>
 ; For Coplanar Differential Pair
 #for (
   dp-name in [DP-50, DP-75, DP-100],
-  width-val in [0.8367, 0.4018, 0.2037],
+  width-val in [1.2436, 0.5598, 0.2614],
   space-val in [0.2032, 0.2032, 0.2032]
   ):
   public pcb-differential-routing-structure dp-name:

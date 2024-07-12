@@ -11,18 +11,11 @@ defpackage jlc-pcb/tests/stackups :
   import jlc-pcb/basic-rules
   import esir/ir
 
-deftest make-JLC04161H-7628 :
-  val test-stackup = jlc-pcb/JLC04161H-7628/stackup
-  print-def(test-stackup)
-  println(get-def-string(test-stackup))
-  ; => "pcb-stackup D90custom-stackup"
-  println(test-stackup)
-  ; => "Stackup JLC04161H-7628"
-
-  val test-stack = jlc-pcb/JLC04161H-7628/stack
-  verify-layers(test-stack, top-layers) where :
+;======== 4-layer stackup ========
+defn verify-layers-for-JLC04161H-7628 (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
     val core = FR4("core", 1.065, "core")
-    val prepreg = FR4("7628", 0.2104, "7628x1")
+    val prepreg = FR4("7628", 0.2104, "7628*1")
     val top-layers = 
       [ 
         copper-35um
@@ -31,21 +24,148 @@ deftest make-JLC04161H-7628 :
         core
       ]
 
-deftest make-JLC04161H-7628-from-name :
-  val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628")
+deftest make-JLC04161H-7628 :
+  ;Create pcb-stackup
+  val test-stackup = jlc-pcb/JLC04161H-7628/stackup
   print-def(test-stackup)
+  println(get-def-string(test-stackup))
+  ; => "pcb-stackup D90custom-stackup"
+  println(test-stackup)
+  ; => "Stackup JLC04161H-7628"
+
+  ;Verify the LayerStack
+  val test-stack = jlc-pcb/JLC04161H-7628/stack
+  verify-layers-for-JLC04161H-7628(test-stack)
+
+deftest make-JLC04161H-7628-from-name :
+  ;Create pcb-stackup
+  ;val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628")
+  ;print-def(test-stackup)
+
+  ;Verify the LayerStack
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628")
+  verify-layers-for-JLC04161H-7628(test-stack)
   
   ;TODO: comparison of two pcb-stackup
   ;#EXPECT(test-stackup == jlc-pcb/JLC04161H-7628/stackup)
 
+; two adjacent prepreg layers
+defn verify-layers-for-JLC04161H-7628A (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.865, "core")
+    val prepreg = FR4("7628", 0.218, "7628*1")
+    val prepregA = FR4("1080", 0.0764, "1080*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        prepregA
+        copper-15_2um
+        core
+      ]
+
+; two adjacent prepreg layers
+deftest make-JLC04161H-7628A-from-name :
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628A")
+  verify-layers-for-JLC04161H-7628A(test-stack)
+
+; three adjacent prepreg layers
+defn verify-layers-for-JLC04161H-7628B (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.4, "core")
+    val prepreg = FR4("7628", 0.218, "7628*1")
+    val prepregB = FR4("2116", 0.1164, "2116*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        prepreg
+        prepregB
+        copper-15_2um
+        core
+      ]
+
 ; three adjacent prepreg layers
 deftest make-JLC04161H-7628B-from-name :
-  val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628B")
-  print-def(test-stackup)
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628B")
+  verify-layers-for-JLC04161H-7628B(test-stack)
 
-  ;val stmts = statements(test-stackup)
-  ;println(stmts)
+;======== 6-layer stackup ========
+defn verify-layers-for-JLC06161H-7628 (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.4, "core")
+    val prepreg = FR4("7628", 0.2104, "7628*1")
+    val prepregA = FR4("7628", 0.2028, "7628*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA
+      ]
 
+deftest make-JLC06161H-7628 :
+  val test-stack = jlc-pcb/JLC06161H-7628/stack
+  verify-layers-for-JLC06161H-7628(test-stack)
+
+deftest make-JLC06161H-7628-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06161H-7628")
+  verify-layers-for-JLC06161H-7628(test-stack)
+
+;Two pregpreg layers in the middle
+defn verify-layers-for-JLC06161H-1080B (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.1, "core")
+    val prepreg = FR4("1080", 0.0764, "1080*1")
+    val prepregA = FR4("7628", 0.2104, "7628*1")
+    val prepreg-core = FR4("core", 0.7, "core")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA
+        prepreg-core
+      ]
+
+;Two pregpreg layers in the middle
+deftest make-JLC06161H-1080B :
+  val test-stack = jlc-pcb/JLC06161H-1080B/stack
+  verify-layers-for-JLC06161H-1080B(test-stack)
+
+;Two pregpreg layers in the middle
+deftest make-JLC06161H-1080B-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06161H-1080B")
+  verify-layers-for-JLC06161H-1080B(test-stack)
+
+;Even number of layers
+; "JLC06201H-3313A": [0.7 [FR4(\|2116|, 0.1164, "2116*1")] [FR4(\|3313|, 0.0994, "3313*1")] true]
+defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
+  verify-layers(stack, top-layers, even-layers? = true) where :
+    val core = FR4("core", 0.7, "core")
+    val prepreg = FR4("2116", 0.1164, "2116*1")
+    val prepregA = FR4("3313", 0.0994, "3313*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA       ; even-layers? = true => two layers of prepregA in the center
+      ]
+
+;Even number of layers
+deftest make-JLC06201H-3313A-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06201H-3313A")
+  verify-layers-for-JLC06201H-3313A(test-stack)
+
+
+;======== pcb-routing-structure and pcb-rules ========
 ;TODO: print-def for pcb-routing-structure does not work
 deftest test-routing-structure :
   val test-routing = jlc-pcb/JLC04161H-7628/SE-50
