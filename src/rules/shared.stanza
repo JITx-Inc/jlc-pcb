@@ -9,6 +9,7 @@ defpackage jlc-pcb/rules/shared:
   import core
   import collections
   import jitx
+  import jlc-pcb/stackups/shared
 
 doc:\<DOC>
   Rigit PCB Rules
@@ -91,11 +92,11 @@ public val rigid-pcb-rules-table:HashTable<String,?> = to-hashtable<String,?> $
       ]
     "Minimum Annular Ring" => to-hashtable<String,?> $ 
       [
-        "Minimum Annular Ring" => [
+        "Minimum Annular Ring" => to-hashtable<String,?> $ [
           "1oz Copper" => 0.13 ; 0.13mm
           "2oz Copper" => 0.2  ; 0.2mm
         ]
-        "PTH" => [
+        "PTH" => to-hashtable<String,?> $ [
           "1oz Copper" => 0.3 ; 0.3mm
           "2oz Copper" => 0.3  ; 0.3mm
         ]
@@ -208,8 +209,193 @@ public val rigid-pcb-rules-table:HashTable<String,?> = to-hashtable<String,?> $
       ]
   ]
 
+;======== Extract rules values from rigid-pcb-rules-table ========
+public defn make-rules-prop (stackup-name:String) -> RulesProperty :
+  val stackup-prop = to-stackup-property(stackup-name)
+  RulesProperty(board-rules,
+            copper-rules,
+            soldermask-rules,
+            silkscreen-rules,
+            pad-rules,
+            via-rules,
+            pitch-rules) where :
+    val board-rules = retrieve-board-rules(rigid-pcb-rules-table)
+    val copper-rules = retrieve-copper-rules(stackup-prop, rigid-pcb-rules-table)
+    val soldermask-rules = retrieve-soldermask-rules(rigid-pcb-rules-table)
+    val silkscreen-rules = retrieve-silkscreen-rules(rigid-pcb-rules-table)
+    val pad-rules = retrieve-pad-rules(rigid-pcb-rules-table)
+    val via-rules = retrieve-via-rules(rigid-pcb-rules-table)
+    val pitch-rules = retrieve-pitch-rules(rigid-pcb-rules-table)
 
-public defstruct RulesProp <: Equalable :
+defn retrieve-board-rules (rules-table:HashTable<String,?>) :
+  BoardRules(max-width, max-height) where :
+    val [max-width max-height]= rules-table["PCB Specification"]["Max. Dimension"]
+
+defn retrieve-copper-rules (stackup-prop:StackupProperty, rules-table:HashTable<String,?>) :
+  CopperRules(min-width, min-copper-space, min-hole-space, min-edge-space) where :
+    ;min-trace-width
+    val min-width = retrieve-min-trace-width(stackup-prop, rules-table)
+    ;min-copper-copper-space
+    val min-copper-space = maximum([min-trace-spacing, pad-to-pad-clearance]) where :
+      val min-trace-spacing = retrieve-min-trace-spacing(stackup-prop, rules-table)
+      val pad-to-pad-clearance = rules-table["Minimum Clearance"]["Pad to Pad clearance(Pad without hole, Different nets)"]
+    val min-hole-space = rules-table["Minimum Clearance"]["Via to Track"]
+    ; copper to edge of board
+    val min-edge-space = rules-table["Board Outlines"]["Trace to Outline(Routed)"]
+
+defn retrieve-soldermask-rules (rules-table:HashTable<String,?>) :
+  SoldermaskRules(registration, min-opening, min-bridge) where :
+    ;solder-mask-registration = soldermask expansion
+    val registration = rules-table["Solder Mask"]["Soldermask Expansion"]
+    ;min-soldermask-opening = solder bridge - solder mask opening/expansion DIAMETER
+    val min-opening = 0.1 ; don't know what it is
+    val min-bridge = rules-table["Solder Mask"]["Min. Solder bridge"]
+
+defn retrieve-silkscreen-rules (rules-table:HashTable<String,?>) :
+  SilkscreenRules(min-width, min-soldermask-space, min-text-height) where :
+    val min-width = rules-table["Legend"]["Minimum Line Width"]
+    val min-soldermask-space = rules-table["Legend"]["Pad To Silkscreen"]
+    val min-text-height = rules-table["Legend"]["Minimum text height"]
+
+defn retrieve-pad-rules (rules-table:HashTable<String,?>) :
+  PadRules(min-hole-to-hole, min-pth-pin-solder-clearance, min-th-pad-expand-outer) where :
+    val min-hole-to-hole = rules-table["Minimum Clearance"]["Pad to Pad clearance(Pad with hole, Different nets)"]
+    val min-pth-pin-solder-clearance = 3.0 ; don't know what it is
+    val min-th-pad-expand-outer = rules-table["Drill/Hole Size"]["Pad Size (ring/hole)"]["ring"]
+
+defn retrieve-via-rules (rules-table:HashTable<String,?>) :
+  val annular-ring-rules = retrieve-annular-ring-rules(rules-table)
+  ViaRules(min-annular-ring, min-drill-diameter) where :
+    val min-annular-ring = maximum $ values $ annular-ring-table where :
+      val annular-ring-table:HashTable<CopperWeightType,Double> = min-annular-ring(annular-ring-rules)
+    ; min-drill-diameter => min of (Drill Hole Size, Via hole size, PTH hole size)
+    val min-drill-diameter = minimum([drill-hole-size, via-hole-size, pth-hole-size]) where :
+      val drill-hole-size = rules-table["Drill/Hole Size"]["Drill Hole Size"][0]
+      val via-hole-size = rules-table["Drill/Hole Size"]["Min. Via hole size/diameter"][0]
+      val pth-hole-size = rules-table["Drill/Hole Size"]["PTH hole Size"][0]
+
+defn retrieve-pitch-rules (rules-table:HashTable<String,?>) :
+  PitchRules(min-pitch-leaded, min-pitch-bga) where :
+    ;Pitch (center-to-center) between legs of a component
+    val min-pitch-leaded = 0.3 ; not found
+    ;distance between center of two pads => pad diameter + gap between pads
+    val min-pitch-bga = (pad-diameter + gap-between-pads) where :
+      val [pad-diameter gap-between-pads] = retrieve-pad-dimension-gap(rules-table)
+
+doc:\<DOC>
+  Convert the "Minimum Annular Ring" section of the `rigid-pcb-rules-table` to AnnularRingRules.
+
+  The "Minimum Annular Ring" section contains
+  ```
+    "Minimum Annular Ring" => to-hashtable<String,?> $ 
+      [
+        "Minimum Annular Ring" => to-hashtable<String,?> $ [
+          "1oz Copper" => 0.13 ; 0.13mm
+          "2oz Copper" => 0.2  ; 0.2mm
+        ]
+        "PTH" => to-hashtable<String,?> $ [
+          "1oz Copper" => 0.3 ; 0.3mm
+          "2oz Copper" => 0.3  ; 0.3mm
+        ]
+      ]
+  ```
+<DOC>
+defn retrieve-annular-ring-rules (rules-table:HashTable<String,?>) -> AnnularRingRules :
+  val ring-rules-section = rules-table["Minimum Annular Ring"]
+  AnnularRingRules(min-annular-ring, pth) where :
+    val min-annular-ring = to-hashtable<CopperWeightType,Double> $
+      [ \|1oz| => ring-rules-section["Minimum Annular Ring"]["1oz Copper"]
+        \|2oz| => ring-rules-section["Minimum Annular Ring"]["2oz Copper"]
+      ]
+    val pth = to-hashtable<CopperWeightType,Double> $
+      [ \|1oz| => ring-rules-section["PTH"]["1oz Copper"]
+        \|2oz| => ring-rules-section["PTH"]["2oz Copper"]
+      ]
+defstruct AnnularRingRules :
+  min-annular-ring:HashTable<CopperWeightType,Double>
+  pth:HashTable<CopperWeightType,Double>
+
+doc:\<DOC>
+  Get the minimum trace width for a given stakcup from the "Minimum trace width and spacing" section
+  of the `rigid-pcb-rules-table`
+
+  The width-spacing-rules-section contains
+  ```
+    "Minimum trace width and spacing" => to-hashtable<String,?> $ 
+      [
+        "Min. Trace width" => to-hashtable<String,?> $ [
+          "1-2 Layers" => 0.127 ; 0.127mm
+          "4-6 Layers" => 0.09  ; 0.09mm
+          "2oz Copper weight" => 0.2 ; 0.2mm
+        ]
+        "Min. Spacing" => to-hashtable<String,?> $ [
+          "1-2 Layers" => 0.127 ; 0.127mm
+          "4-6 Layers" => 0.09  ; 0.09mm
+          "2oz Copper weight" => 0.2 ; 0.2mm
+        ]
+      ]
+  ```
+
+<DOC>
+defn retrieve-min-trace-width (stackup-prop:StackupProperty, rules-table:HashTable<String,?>) -> Double :
+  val trace-width-rules-section = rules-table["Minimum trace width and spacing"]["Min. Trace width"]
+  if num-layers(stackup-prop) <= 2 :
+    trace-width-rules-section["1-2 Layers"]
+  else if num-layers(stackup-prop) <= 6 :
+    trace-width-rules-section["4-6 Layers"]
+  else : ; 7 or more layers
+    if outer-copper-weight(stackup-prop) ==  \|2oz| or inner-copper-weight(stackup-prop) ==  \|2oz| :
+      trace-width-rules-section["2oz Copper weight"]
+    else :
+      minimum $ values $ trace-width-rules-section
+
+doc:\<DOC>
+  Get the minimum trace spacing for a given stakcup from the "Minimum trace width and spacing" section
+  of the `rigid-pcb-rules-table`
+
+  The section for `rules-table["Minimum trace width and spacing"]["Min. Spacing"]` is identical
+  to the section for "Min. Trace width".
+  Thus, use the same function to retrieve the value.
+
+<DOC>
+defn retrieve-min-trace-spacing (stackup-prop:StackupProperty, rules-table:HashTable<String,?>) -> Double :
+  retrieve-min-trace-width(stackup-prop, rules-table)
+
+doc:\<DOC>
+  Get the pad dimension and gap between pads for a given stakcup from the "BGA" section
+  of the `rigid-pcb-rules-table`
+
+  The width-spacing-rules-section contains
+  ```
+    "BGA" => to-hashtable<String,?> $ 
+      [
+        "Min. BGA Pad Dimensions" => to-hashtable<String,?> $ [
+          "1/2 Layers" => 0.25 ; 0.25mm
+          "4/6 Layers" => 0.25 ; 0.25mm
+        ]
+        "Min. Distance Between BGA" => to-hashtable<String,?> $ [
+          "1/2 Layers" => 0.127 ; 0.127mm
+          "4/6 Layers" => 0.127 ; 0.127mm
+        ]
+      ]
+  ```
+  The numbers are the same for "1/2 Layers" and "4/6 Layers".
+
+<DOC>
+defn retrieve-pad-dimension-gap (rules-table:HashTable<String,?>)
+       -> [Double Double] :
+  val bga-rules-section = rules-table["BGA"]
+  [pad-dimension gap-between-pads] where :
+    ; Since the numbers are the same for "1/2 Layers" and "4/6 Layers", take any one.
+    val pad-dimension = bga-rules-section["Min. BGA Pad Dimensions"]["4/6 Layers"]
+    val gap-between-pads = bga-rules-section["Min. Distance Between BGA"]["4/6 Layers"]
+
+
+;======== RulesProperty ========
+doc:\<DOC>
+  The RulesProp contains all clearance rules in `pcb-rules`, grouped into categories.
+<DOC>
+public defstruct RulesProperty <: Equalable :
   board-rules:BoardRules
   copper-rules:CopperRules
   soldermask-rules:SoldermaskRules
@@ -224,7 +410,7 @@ with:
 doc:\<DOC>
   Create pcb-rules from the Rules datastructure
 <DOC>
-public defn create-pcb-rules (rules:RulesProp) -> Rules :
+public defn create-pcb-rules (rules:RulesProperty) -> Rules :
   pcb-rules custom-rules :
     make-board-rules(rules)
     make-copper-rules(rules)
@@ -290,13 +476,13 @@ with:
   equalable
   printer
 
-public defn make-board-rules (rules:RulesProp) :
+public defn make-board-rules (rules:RulesProperty) :
   val board-rules = board-rules(rules)
   inside pcb-rules :
     max-board-width = max-width(board-rules)
     max-board-height = max-height(board-rules)
 
-public defn make-copper-rules (rules:RulesProp) :
+public defn make-copper-rules (rules:RulesProperty) :
   val copper-rules = copper-rules(rules)
   inside pcb-rules :
     min-copper-width = min-width(copper-rules)
@@ -304,34 +490,34 @@ public defn make-copper-rules (rules:RulesProp) :
     min-copper-hole-space = min-hole-space(copper-rules)
     min-copper-edge-space = min-edge-space(copper-rules)
 
-public defn make-soldermask-rules (rules:RulesProp):
+public defn make-soldermask-rules (rules:RulesProperty):
   val sm-rules = soldermask-rules(rules)
   inside pcb-rules :
     solder-mask-registration = registration(sm-rules)
     min-soldermask-opening = min-opening(sm-rules)
     min-soldermask-bridge = min-bridge(sm-rules)
 
-public defn make-silkscreen-rules (rules:RulesProp) :
+public defn make-silkscreen-rules (rules:RulesProperty) :
   val silk-rules = silkscreen-rules(rules)
   inside pcb-rules :
     min-silkscreen-width = min-width(silk-rules)
     min-silk-solder-mask-space = min-soldermask-space(silk-rules)
     min-silkscreen-text-height = min-text-height(silk-rules)
 
-public defn make-pad-rules (rules:RulesProp) :
+public defn make-pad-rules (rules:RulesProperty) :
   val pad-rules = pad-rules(rules)
   inside pcb-rules :
     min-hole-to-hole = min-hole-to-hole(pad-rules)
     min-pth-pin-solder-clearance = min-pth-pin-solder-clearance(pad-rules)
     min-th-pad-expand-outer = min-th-pad-expand-outer(pad-rules)
 
-public defn make-via-rules (rules:RulesProp) : 
+public defn make-via-rules (rules:RulesProperty) : 
   val via-rules = via-rules(rules)
   inside pcb-rules :
     min-annular-ring = min-annular-ring(via-rules)
     min-drill-diameter = min-drill-diameter(via-rules)
 
-public defn make-pitch-rules (rules:RulesProp) : 
+public defn make-pitch-rules (rules:RulesProperty) : 
   val pitch-rules = pitch-rules(rules)
   inside pcb-rules :
     min-pitch-leaded = min-pitch-leaded(pitch-rules)

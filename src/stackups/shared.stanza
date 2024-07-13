@@ -12,7 +12,7 @@ doc:\<DOC>
     - Data for routing structures: https://jlcpcb.com/pcb-impedance-calculator
     - Data for Rules: https://jlcpcb.com/capabilities/pcb-capabilities
 <DOC> 
-defpackage jlc-pcb/shared:
+defpackage jlc-pcb/stackups/shared:
   import core
   import jitx
   import jsl/layerstack
@@ -34,7 +34,7 @@ defn to-prepreg-type (name:String) -> PrepregType :
     "2116" : \|2116|
     else: throw(Exception("Nonexistent or unsupported Prepreg Type %_" % [name]))
 
-public defenum WeightType :
+public defenum CopperWeightType :
   \|0.5oz|
   \|1oz|
   \|2oz|
@@ -50,8 +50,10 @@ public defstruct StackupProperty :
   variation: Char     ; '0', A, B, C, D
   num-layers: Int     ; 4, 6, ... 20
   thickness: Double   ; 0.8mm, 1.0mm, 1.2mm, 1.6mm, 2.0mm
-  outer-copper-weight: WeightType ; 0.5oz, 1oz, 2oz
-  inner-copper-weight: WeightType
+  outer-copper-weight: CopperWeightType ; 0.5oz, 1oz, 2oz
+  inner-copper-weight: CopperWeightType
+with :
+  printer
 
 doc:\<DOC>
   Retrieve the property of a stackup from its name for the JLC-PCB stackup name,

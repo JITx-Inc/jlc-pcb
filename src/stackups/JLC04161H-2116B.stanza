@@ -13,7 +13,7 @@ defpackage jlc-pcb/JLC04161H-2116B:
   import core
   import jitx
   import jsl/layerstack
-  import jlc-pcb/shared
+  import jlc-pcb/stackups/shared
 
 protected val stack = make-layer-stack("JLC04161H-2116B", outers) where :
   val core = FR4("core", 0.865, "core")

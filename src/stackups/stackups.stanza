@@ -3,7 +3,7 @@ defpackage jlc-pcb/stackups:
   import collections
   import jitx
   import jsl/layerstack
-  import jlc-pcb/shared
+  import jlc-pcb/stackups/shared
 
 doc:\<DOC>
   Construct the LayerStack for the JLC-PCB stackup from its name, such as JLC04161H-7628.
