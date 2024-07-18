@@ -27,7 +27,7 @@ protected val stack = make-layer-stack("JLC04161H-7628", outers) where :
 public val stackup = create-pcb-stackup(stack)
 
 doc:\<DOC>
-  The parameters for the pcb-routing-structure and pcb-differential-routing-structure 
+  The parameters for the `pcb-routing-structure` and `pcb-differential-routing-structure` 
   are retrieved from the PCB Impedance Calculator
    - For Coplanar Single-Ended, the valid values for Impedance is from 20 to 90.
    - For Coplanar Differential Pair, the valid values for Impedance is from 50 to 150
@@ -40,11 +40,25 @@ doc:\<DOC>
     To use the default clearance: jlc-pcb/JLC04161H-7628/SE-50()
     To use the user-given clearance: jlc-pcb/JLC04161H-7628/SE-50(clearance = 0.5)
 
-   Reference: https://jlcpcb.com/pcb-impedance-calculator
+   Reference: JLC-PCB Impedance Calculator https://jlcpcb.com/pcb-impedance-calculator
 <DOC>
 
 ; For Coplanar Single-Ended
 ;  - width-val comes from the "Trace Width" column 
+doc:\<DOC>
+Create `pcb-routing-structure` for Coplanar Single-Ended with
+  parameters calculated from the JLC-PCB Impedance Calculator.
+   - width-val comes from the "Trace Width" column 
+   - space-val comes from the "Trace Spacing" column
+
+  The following `pcb-routing-structure`'s are created from the `#for` macro:
+    - `pcb-differential-routing-structure SE-50` for Single-ended Impedance 50 ohm
+    - `pcb-differential-routing-structure SE-75` for Single-ended Impedance 75 ohm
+
+  Single-ended impedance must be in the range of 20~90 ohm
+
+   Reference: JLC-PCB Impedance Calculator https://jlcpcb.com/pcb-impedance-calculator
+<DOC>
 #for ( 
   se-name in [SE-50, SE-75]
   width-val in [0.3424, 0.1311]
@@ -63,9 +77,21 @@ doc:\<DOC>
       velocity = velocity("7628")
       insertion-loss = insertion-loss
 
-; For Coplanar Differential Pair
-;  - width-val comes from the "Trace Width" column 
-;  - space-val comes from the "Trace Spacing" column
+doc:\<DOC>
+Create `pcb-differential-routing-structure` for Coplanar Differential Pair with
+  parameters calculated from the JLC-PCB Impedance Calculator.
+   - width-val comes from the "Trace Width" column 
+   - space-val comes from the "Trace Spacing" column
+
+  The following `pcb-differential-routing-structure`'s are created from the `#for` macro:
+    - `pcb-differential-routing-structure DP-50` for Diffenrential Impedance 50 ohm
+    - `pcb-differential-routing-structure DP-75` for Diffenrential Impedance 75 ohm
+    - `pcb-differential-routing-structure DP-100` for Diffenrential Impedance 100 ohm
+
+  Differential impedance must be in the range of 50~150 ohm.
+
+   Reference: JLC-PCB Impedance Calculator https://jlcpcb.com/pcb-impedance-calculator
+<DOC>
 #for (
   dp-name in [DP-50, DP-75, DP-100],
   width-val in [0.8367, 0.4018, 0.2037],
