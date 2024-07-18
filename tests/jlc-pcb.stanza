@@ -204,7 +204,7 @@ deftest make-JLC06201H-3313A-from-name :
 
 ;======== Testing for pcb-routing-structure and pcb-differential-routing-structure ========
 ;TODO: print-def for pcb-routing-structure does not work
-deftest test-routing-structure :
+deftest test-routing-structure-with-no-args :
   val test-routing = jlc-pcb/JLC04161H-7628/SE-50()
   print-def(test-routing)
   ; => pcb-routing-structure D78SE-50
@@ -212,8 +212,24 @@ deftest test-routing-structure :
   ;      routing-layer(LayerIndex(0)) : ()
   ;      routing-layer(LayerIndex(0, Bottom)) : ()
 
-deftest test-differential-routing-structure :
+deftest test-routing-structure-with-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/SE-50(clearance = 0.2, insertion-loss = 0.006)
+  print-def(test-routing)
+  ; => pcb-routing-structure D78SE-50
+  ;    name = SE-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-differential-routing-structure-with-no-args :
   val test-routing = jlc-pcb/JLC04161H-7628/DP-50()
+  print-def(test-routing)
+  ; => pcb-differential-routing-structure D78DP-50
+  ;    name = DP-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-differential-routing-structure-with-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/DP-50(clearance = 0.2, insertion-loss = 0.006)
   print-def(test-routing)
   ; => pcb-differential-routing-structure D78DP-50
   ;    name = DP-50

@@ -50,17 +50,18 @@ doc:\<DOC>
   width-val in [0.3424, 0.1311]
   ):
   public pcb-routing-structure se-name (
-      -- clearance:Double = 0.508) :
+      -- clearance:Double = 0.508
+         insertion-loss:Double = 0.004) :
     layer(Top):
       trace-width = width-val 
       clearance = clearance
       velocity = velocity("7628")
-      insertion-loss = 0.004
+      insertion-loss = insertion-loss
     layer(Bottom):
       trace-width = width-val
-      clearance = 0.508
+      clearance = clearance
       velocity = velocity("7628")
-      insertion-loss = 0.004
+      insertion-loss = insertion-loss
 
 ; For Coplanar Differential Pair
 ;  - width-val comes from the "Trace Width" column 
@@ -71,18 +72,19 @@ doc:\<DOC>
   space-val in [0.2032, 0.2032, 0.2032]
   ):
   public pcb-differential-routing-structure dp-name (
-      -- clearance:Double = 0.2032) :
+      -- clearance:Double = 0.2032
+         insertion-loss:Double = 0.004) :
     layer(Top):
       trace-width = width-val
       pair-spacing = space-val
       clearance = clearance
       velocity = velocity("7628")
-      insertion-loss = 0.003
+      insertion-loss = insertion-loss
 
     layer(Bottom):
       trace-width = width-val
       pair-spacing = space-val
-      clearance = 0.2032
+      clearance = clearance
       velocity = velocity("7628")
-      insertion-loss = 0.003
+      insertion-loss = insertion-loss
 
