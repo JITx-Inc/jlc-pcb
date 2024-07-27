@@ -1,0 +1,84 @@
+#use-added-syntax(jitx)
+doc:\<DOC>
+  Create the JLC04161H-2116A stakup.
+    - 4-layer impedance control stackup
+    - 1.6mm thickness
+    - 1oz outer copper weight
+    - 0.5oz inner copper weight
+
+  Note: All metrics are in mm.
+  Reference: https://jlcpcb.com/impedance
+<DOC>
+defpackage jlc-pcb/JLC04161H-2116A:
+  import core
+  import jitx
+  import jsl/layerstack
+  import jlc-pcb/stackups/shared
+
+val copper-15_2um = Copper(0.0152)
+val copper-35um = Copper(0.035)
+
+protected val stack = jlc-make-layer-stack("JLC04161H-2116A", outers) where :
+  val core = FR4("core", 0.6, "core")
+  val prepreg = FR4("2116", 0.124, "2116*1")
+  val prepregA = FR4("7628", 0.218, "7628*1")
+  val prepregB = FR4("2116", 0.1164, "2116*1")
+  val outers = 
+    [ 
+      [copper-35um prepreg prepregA prepregB]
+      [copper-15_2um core]
+    ]
+
+public val stackup = create-pcb-stackup(stack)
+
+doc:\<DOC>
+  The parameters for the pcb-routing-structure and pcb-differential-routing-structure 
+  are retrieved from the PCB Impedance Calculator
+   - For Coplanar Single-Ended, the valid values for Impedance is from 20 to 90.
+   - For Coplanar Differential Pair, the valid values for Impedance is from 50 to 150
+   - `trace-width` comes from the "Trace Width" column of the Impedance Calculator
+   - `pair-spacing` comes from the "Trace Spacing" column of the Impedance Calculator
+   - `clearance` comes from the "Impedance trace to copper" column of the Impedance Calculator
+   - The function `velocity` calculate the velocity from the dielectric constant of the material for "7628"
+
+   Reference: https://jlcpcb.com/pcb-impedance-calculator
+<DOC>
+
+; For Coplanar Single-Ended
+#for ( 
+  se-name in [SE-50, SE-75]
+  width-val in [0.7635, 0.3068]
+  ):
+  public pcb-routing-structure se-name :
+    layer(Top):
+      trace-width = width-val 
+      clearance = 0.508       ; "Impedance trace to copper" at jlcpcb.com
+      velocity = velocity("7628")
+      insertion-loss = 0.004
+    layer(Bottom):
+      trace-width = width-val
+      clearance = 0.508
+      velocity = velocity("7628")
+      insertion-loss = 0.004
+
+; For Coplanar Differential Pair
+#for (
+  dp-name in [DP-50, DP-75, DP-100],
+  width-val in [1.5911, 0.6690, 0.2891],
+  space-val in [0.2032, 0.2032, 0.2032]
+  ):
+  public pcb-differential-routing-structure dp-name:
+    layer(Top):
+      trace-width = width-val
+      pair-spacing = space-val ; "Trace Spacing" at jlcpcb.com
+      clearance = 0.2032       ; "Impedance trace to copper" at jlcpcb.com
+      velocity = velocity("7628")
+      insertion-loss = 0.003
+
+    layer(Bottom):
+      trace-width = width-val
+      pair-spacing = space-val
+      clearance = 0.2032
+      velocity = velocity("7628")
+      insertion-loss = 0.003
+

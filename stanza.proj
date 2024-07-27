@@ -1,0 +1,11 @@
+
+packages jlc-pcb/* defined-in "./src/"
+packages jlc-pcb/tests/* defined-in "./tests/"
+
+build-test tests:
+  inputs: 
+    jlc-pcb/tests/stackups
+  pkg: ".slm/pkgs"
+  o: "jlc-pcb-tests"
+
+

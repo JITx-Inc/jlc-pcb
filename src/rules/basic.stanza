@@ -1,0 +1,88 @@
+#use-added-syntax(jitx)
+doc:\<DOC>
+  JLC-PCB Basic Rules
+
+  Question: 
+    - Inconsistency: Some parameters use "solder-mask", but others use "soldermask".
+      Should we make them consistent?
+  
+  Note: All metrics are in mm.
+  Reference: https://jlcpcb.com/capabilities/Capabilities
+<DOC>
+defpackage jlc-pcb/rules/basic :
+  import core
+  import collections
+  import jitx
+  import jlc-pcb/stackups/shared
+  import jlc-pcb/rules/shared
+
+doc:\<DOC>
+  pcb-rules with parameters retrieved from JLCPCB.com at https://jlcpcb.com/capabilities/Capabilities
+<DOC>
+public defn create-pcb-rules-from-name (stackup-name:String) -> Rules :
+  val rules-prop = make-rules-prop(stackup-name)
+  create-pcb-rules(rules-prop)
+
+
+;---------------------------------------------------------------------------
+;    Testing DATA for Sanity Check
+;---------------------------------------------------------------------------
+; pcb-rules jlcpcb-basic-rules from open-components-database/manufacturers/rules.stanza
+public pcb-rules jlcpcb-basic-rules-from-ocdb :
+  ;copper rules
+  min-copper-width = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
+     ; => "Min Trace width" 
+  min-copper-copper-space = 0.127 ; 3.5mil ; 0.127mm for 1 or 2-copper-layer designs
+      ; => pad to pad clearance (pad without hole, different nets)
+      ; => "Min Spacing" under "Minimum trace width and spacing"
+      ; => take the max of above two.
+  min-copper-hole-space = 0.254 ; 10mil ; => via to track  
+  min-copper-edge-space = 0.2 ; 7.87mil ; copper to edge of board
+    ; => "Trace to Outline" under "Board Outline"
+  ;soldermask rules
+  solder-mask-registration = 0.05 ; => soldermask expansion
+  min-soldermask-opening = 0.10 ; solder bridge - solder mask opening/expansion DIAMETER
+    ; => cannot find it
+  min-soldermask-bridge = 0.2 ; green => "Min. Solder bridge"
+  ;silkscreen rules
+  min-silkscreen-width = 0.153 ; 6mil => "Min Line width" under "Legend"
+  min-silk-solder-mask-space = 0.15  ; => "Pad to silkscreen"
+  min-silkscreen-text-height = 0.80  ; => "Minimum text height"
+  ;via rules
+  min-annular-ring = 0.215 ; 7.87mil ;=> larger of two copper
+  min-drill-diameter = 0.3 ; 7.87mil ;=> PTH under annular ring
+    ; => min of (Drill Hole Size, Via hole size, PTH hole size)
+  ;pitch rules
+  min-pitch-leaded = 0.3 ; 11.81mil (guess) ; => pitch (center-to-center) between legs of a component
+    ; => not found
+  min-pitch-bga = 0.377 ; 14.84mil 
+    ; => distance between center of two pads => pad diameter + gap between pads
+  ;pad rules
+  min-hole-to-hole = 0.5 ; => pad to pad clearance (pad with hole, different nets)
+  min-pth-pin-solder-clearance = 3.0 ; TODO: lookup actual value
+    ; => not found
+  min-th-pad-expand-outer = 0.26 ; => Pad size 0.25mm (outer ring width)
+  ;board rules
+  max-board-width = 350.0 ; 15.74in ; => "Max Dimension" under "PCB Specification"
+  max-board-height = 320.0 ; 19.68in
+
+;LFCHAO - for testing only
+; same as rules-direct, but use RulesProp to create
+public val rules-prop1 = RulesProperty(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+  val board-rules = BoardRules(350.0, 320.0)
+  val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
+  val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
+  val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
+  val pad-rules = PadRules(0.5, 3.0, 0.26)
+  val via-rules = ViaRules(0.215, 0.3)
+  val pitch-rules = PitchRules(0.3, 0.377)
+
+public val rules1 = create-pcb-rules(rules-prop1)
+
+

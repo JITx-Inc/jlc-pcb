@@ -1,0 +1,368 @@
+#use-added-syntax(jitx,tests)
+defpackage jlc-pcb/tests/stackups :
+  import core
+  import collections
+  import jitx
+  import jitx/commands
+  import jsl/layerstack
+  import jsl/tests/layerstack
+  import jlc-pcb/stackups/shared
+  import jlc-pcb/stackups
+  import jlc-pcb/rules/shared
+  import jlc-pcb/rules/basic
+  import esir/ir
+  import jlc-pcb/tests/stackups-utils
+
+val copper-15_2um = Copper(0.0152)
+val copper-35um = Copper(0.035)
+
+;======== 4-layer stackup ========
+defn verify-layers-for-JLC04161H-7628 (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 1.065, "core")
+    val prepreg = FR4("7628", 0.2104, "7628*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+      ]
+
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628/stack,
+; created using make-layer-stack directly
+deftest make-JLC04161H-7628 :
+  ;Create pcb-stackup
+  val test-stackup = jlc-pcb/JLC04161H-7628/stackup
+  print-def(test-stackup)
+  println(get-def-string(test-stackup))
+  ; => "pcb-stackup D90custom-stackup"
+  println(test-stackup)
+  ; => "Stackup JLC04161H-7628"
+
+  ;Verify the LayerStack
+  val test-stack = jlc-pcb/JLC04161H-7628/stack
+  verify-layers-for-JLC04161H-7628(test-stack)
+
+deftest make-JLC04161H-7628-from-name :
+  ;Create pcb-stackup
+  ;val test-stackup = create-pcb-stackup-from-name("JLC04161H-7628")
+  ;print-def(test-stackup)
+
+  ;Verify the LayerStack
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628")
+  verify-layers-for-JLC04161H-7628(test-stack)
+  
+  ;TODO: comparison of two pcb-stackup
+  ;#EXPECT(test-stackup == jlc-pcb/JLC04161H-7628/stackup)
+
+; two adjacent prepreg layers
+defn verify-layers-for-JLC04161H-7628A (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.865, "core")
+    val prepreg = FR4("7628", 0.218, "7628*1")
+    val prepregA = FR4("1080", 0.0764, "1080*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        prepregA
+        copper-15_2um
+        core
+      ]
+
+; two adjacent prepreg layers
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628A/stack
+deftest make-JLC04161H-7628A :
+  val test-stack = jlc-pcb/JLC04161H-7628A/stack
+  verify-layers-for-JLC04161H-7628A(test-stack)
+
+; two adjacent prepreg layers
+;Verify the make-layer-stack-from-name function for "JLC04161H-7628A"
+deftest make-JLC04161H-7628A-from-name :
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628A")
+  verify-layers-for-JLC04161H-7628A(test-stack)
+
+; three adjacent prepreg layers
+defn verify-layers-for-JLC04161H-7628B (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.4, "core")
+    val prepreg = FR4("7628", 0.218, "7628*1")
+    val prepregB = FR4("2116", 0.1164, "2116*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        prepreg
+        prepregB
+        copper-15_2um
+        core
+      ]
+
+; three adjacent prepreg layers
+;Verify the LayerStack in jlc-pcb/JLC04161H-7628B/stack
+deftest make-JLC04161H-7628B :
+  val test-stack = jlc-pcb/JLC04161H-7628B/stack
+  verify-layers-for-JLC04161H-7628B(test-stack)
+
+; three adjacent prepreg layers
+;Verify the make-layer-stack-from-name function for "JLC04161H-7628B"
+deftest make-JLC04161H-7628B-from-name :
+  val test-stack = make-layer-stack-from-name("JLC04161H-7628B")
+  verify-layers-for-JLC04161H-7628B(test-stack)
+
+;======== 6-layer stackup ========
+defn verify-layers-for-JLC06161H-7628 (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.4, "core")
+    val prepreg = FR4("7628", 0.2104, "7628*1")
+    val prepregA = FR4("7628", 0.2028, "7628*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA
+      ]
+
+; 6-layer stack
+;Verify the LayerStack in jlc-pcb/JLC06161H-7628/stack
+deftest make-JLC06161H-7628 :
+  val test-stack = jlc-pcb/JLC06161H-7628/stack
+  verify-layers-for-JLC06161H-7628(test-stack)
+
+; 6-layer stack
+;Verify the make-layer-stack-from-name function for "JLC06161H-7628"
+deftest make-JLC06161H-7628-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06161H-7628")
+  verify-layers-for-JLC06161H-7628(test-stack)
+
+;Two pregpreg layers in the middle
+defn verify-layers-for-JLC06161H-1080B (stack:LayerStack) :
+  verify-layers(stack, top-layers) where :
+    val core = FR4("core", 0.1, "core")
+    val prepreg = FR4("1080", 0.0764, "1080*1")
+    val prepregA = FR4("7628", 0.2104, "7628*1")
+    val prepreg-core = FR4("core", 0.7, "core")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA
+        prepreg-core
+      ]
+
+;Two pregpreg layers in the middle
+;Verify the LayerStack in jlc-pcb/JLC06161H-1080B/stack
+deftest make-JLC06161H-1080B :
+  val test-stack = jlc-pcb/JLC06161H-1080B/stack
+  verify-layers-for-JLC06161H-1080B(test-stack)
+
+;Two pregpreg layers in the middle
+;Verify the make-layer-stack-from-name function for "JLC06161H-1080B"
+deftest make-JLC06161H-1080B-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06161H-1080B")
+  verify-layers-for-JLC06161H-1080B(test-stack)
+
+;Even number of layers
+defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
+  verify-layers(stack, top-layers, even-layers? = true) where :
+    val core = FR4("core", 0.7, "core")
+    val prepreg = FR4("2116", 0.1164, "2116*1")
+    val prepregA = FR4("3313", 0.0994, "3313*1")
+    val top-layers = 
+      [ 
+        copper-35um
+        prepreg
+        copper-15_2um
+        core
+        copper-15_2um
+        prepregA       ; even-layers? = true => two layers of prepregA in the center
+      ]
+
+;Even number of layers
+;Verify the LayerStack created directly with make-layer-stack
+deftest make-JLC06201H-3313A :
+  val test-stack = jlc-make-layer-stack("JLC06201H-3313A", outers, even-layers? = true) where :
+    val core = FR4("core", 0.7, "core")
+    val prepreg = FR4("2116", 0.1164, "2116*1")
+    val prepregA = FR4("3313", 0.0994, "3313*1")
+    val outers =
+      [
+        [copper-35um prepreg]
+        [copper-15_2um core]
+        [copper-15_2um prepregA] ; => two layers of prepregA in the center
+      ]
+  verify-layers-for-JLC06201H-3313A(test-stack)
+
+;Even number of layers
+;Verify the make-layer-stack-from-name function for "JLC06201H-3313A"
+deftest make-JLC06201H-3313A-from-name :
+  val test-stack = make-layer-stack-from-name("JLC06201H-3313A")
+  verify-layers-for-JLC06201H-3313A(test-stack)
+
+;======== Testing for pcb-routing-structure and pcb-differential-routing-structure ========
+;TODO: print-def for pcb-routing-structure does not work
+deftest test-routing-structure-with-no-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/SE-50()
+  print-def(test-routing)
+  ; => pcb-routing-structure D78SE-50
+  ;    name = SE-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-routing-structure-with-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/SE-50(clearance = 0.2, insertion-loss = 0.006)
+  print-def(test-routing)
+  ; => pcb-routing-structure D78SE-50
+  ;    name = SE-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-differential-routing-structure-with-no-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/DP-50()
+  print-def(test-routing)
+  ; => pcb-differential-routing-structure D78DP-50
+  ;    name = DP-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+deftest test-differential-routing-structure-with-args :
+  val test-routing = jlc-pcb/JLC04161H-7628/DP-50(clearance = 0.2, insertion-loss = 0.006)
+  print-def(test-routing)
+  ; => pcb-differential-routing-structure D78DP-50
+  ;    name = DP-50
+  ;      routing-layer(LayerIndex(0)) : ()
+  ;      routing-layer(LayerIndex(0, Bottom)) : ()
+
+;======== Testing for pcb-rules ========
+defn diff-clearances (rules-a:Tuple<RuleClearance>, rules-b:Tuple<RuleClearance>) -> Tuple<[RuleClearance|False RuleClearance|False]> :
+  val diffs = Vector<[RuleClearance|False RuleClearance|False]>()
+  ; for rules in b, check if it is in a and has the same value
+  val table-a = to-hashtable<ClearanceType,RuleClearance>(map({type(_0) => _0} rules-a))
+  for rule in rules-b do:
+    match(get?(table-a type(rule))):
+      (a:RuleClearance) :
+        if value(a) != value(rule) :
+          add(diffs, [a rule])
+      (a:False):
+        add(diffs, [false rule])
+  ; for rules in a, but not in b
+  val table-b = to-hashtable<ClearanceType,RuleClearance>(map({type(_0) => _0} rules-b))
+  for rule in rules-a do:
+    match(get?(table-b type(rule))):
+      (a:False):
+        add(diffs, [rule false])
+      (_): false
+  to-tuple $ diffs
+
+deftest test-rules-constructed-from-RulesProperty :
+  val test-base = jlc-pcb/rules/basic/jlcpcb-basic-rules-from-ocdb 
+  ; - Same as jlcpcb-basic-rules from OCDB, created with RulesProperty struct
+  val test-rules = create-pcb-rules(rules-prop1) where :
+    val rules-prop1 = RulesProperty(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+      val board-rules = BoardRules(350.0, 320.0)
+      val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
+      val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
+      val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
+      val pad-rules = PadRules(0.5, 3.0, 0.26)
+      val via-rules = ViaRules(0.215, 0.3)
+      val pitch-rules = PitchRules(0.3, 0.377)
+  ;print-def(test-rules)
+  ;println(clearances(test-rules))
+  #EXPECT(empty? $ diff-clearances(clearances(test-rules), clearances(test-base)))
+
+; Create rules for 4-layer stackcup
+;  - As a comparison with jlcpcb-basic-rules from OCDB,
+;    the values from jlcpcb-basic-rules are in the comments
+defn create-rules-for-JLC04161H-7628 () :
+  val rules-prop = RulesProperty(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+    ;val board-rules = BoardRules(350.0, 320.0)
+    val board-rules = BoardRules(400.0, 500.0) ; from jlcpcb.com
+    ;val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.2)
+    val copper-rules = CopperRules(0.09, 0.127, 0.254, 0.3) ; from jlcpcb.com
+    ;val soldermask-rules = SoldermaskRules(0.05, 0.10, 0.2)
+    val soldermask-rules = SoldermaskRules(0.038, 0.10, 0.1) ; from jlcpcb.com
+    ;val silkscreen-rules = SilkscreenRules(0.153, 0.15, 0.80)
+    val silkscreen-rules = SilkscreenRules(0.153, 0.15, 1.0) ; from jlcpcb.com
+    ;val pad-rules = PadRules(0.5, 3.0, 0.26)
+    val pad-rules = PadRules(0.5, 3.0, 0.25) ; from jlcpcb.com
+    ;val via-rules = ViaRules(0.215, 0.3)
+    val via-rules = ViaRules(0.2, 0.15) ; from jlcpcb.com
+    val pitch-rules = PitchRules(0.3, 0.377)
+  create-pcb-rules(rules-prop)
+
+; Test Rules for 4-layer stackcup
+deftest test-rules-for-JLC04161H-7628-from-name :
+  val test-base = create-rules-for-JLC04161H-7628()
+  val test-rules = jlc-pcb/rules/basic/create-pcb-rules-from-name("JLC04161H-7628")
+  #EXPECT(empty? $ diff-clearances(clearances(test-rules), clearances(test-base)))
+
+; Create rules for 2-layer stackcup
+; - "JLC02161H-7628" is a non-existent stackup for testing purposes
+defn create-rules-for-JLC02161H-7628 () :
+  val rules-prop = RulesProperty(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+    val board-rules = BoardRules(400.0, 500.0)
+    ;val copper-rules = CopperRules(0.09, 0.127, 0.254, 0.3) ; for 4-6 layer
+    val copper-rules = CopperRules(0.127, 0.127, 0.254, 0.3)
+    val soldermask-rules = SoldermaskRules(0.038, 0.10, 0.1)
+    val silkscreen-rules = SilkscreenRules(0.153, 0.15, 1.0)
+    val pad-rules = PadRules(0.5, 3.0, 0.25)
+    val via-rules = ViaRules(0.2, 0.15)
+    val pitch-rules = PitchRules(0.3, 0.377)
+  create-pcb-rules(rules-prop)
+
+; Test Rules for 2oz stackcup - use 8-layer stackup so a different trace width is used
+deftest test-rules-for-JLC02161H-7628-from-name :
+  val test-base = create-rules-for-JLC02161H-7628()
+  val test-rules = jlc-pcb/rules/basic/create-pcb-rules-from-name("JLC02161H-7628")
+  #EXPECT(empty? $ diff-clearances(clearances(test-rules), clearances(test-base)))
+
+; Create rules for 2oz stackcup - use 8-layer stackup so a different trace width is used
+; - "JLC08162H-7628" is a non-existent stackup for testing purposes
+defn create-rules-for-JLC08162H-7628 () :
+  val rules-prop = RulesProperty(board-rules,
+                         copper-rules,
+                         soldermask-rules,
+                         silkscreen-rules,
+                         pad-rules,
+                         via-rules,
+                         pitch-rules) where :
+    val board-rules = BoardRules(400.0, 500.0)
+    ;val copper-rules = CopperRules(0.09, 0.127, 0.254, 0.3) ; for 4-6 layer
+    val copper-rules = CopperRules(0.2, 0.2, 0.254, 0.3)
+    val soldermask-rules = SoldermaskRules(0.038, 0.10, 0.1)
+    val silkscreen-rules = SilkscreenRules(0.153, 0.15, 1.0)
+    val pad-rules = PadRules(0.5, 3.0, 0.25)
+    val via-rules = ViaRules(0.2, 0.15)
+    val pitch-rules = PitchRules(0.3, 0.377)
+  create-pcb-rules(rules-prop)
+
+; Test Rules for 2oz stackcup - use 8-layer stackup so a different trace width is used
+deftest test-rules-for-JLC08162H-7628-from-name :
+  val test-base = create-rules-for-JLC08162H-7628()
+  val test-rules = jlc-pcb/rules/basic/create-pcb-rules-from-name("JLC08162H-7628")
+  #EXPECT(empty? $ diff-clearances(clearances(test-rules), clearances(test-base)))
