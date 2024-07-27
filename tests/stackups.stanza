@@ -11,6 +11,10 @@ defpackage jlc-pcb/tests/stackups :
   import jlc-pcb/rules/shared
   import jlc-pcb/rules/basic
   import esir/ir
+  import jlc-pcb/tests/stackups-utils
+
+val copper-15_2um = Copper(0.0152)
+val copper-35um = Copper(0.035)
 
 ;======== 4-layer stackup ========
 defn verify-layers-for-JLC04161H-7628 (stack:LayerStack) :
@@ -184,7 +188,7 @@ defn verify-layers-for-JLC06201H-3313A (stack:LayerStack) :
 ;Even number of layers
 ;Verify the LayerStack created directly with make-layer-stack
 deftest make-JLC06201H-3313A :
-  val test-stack = make-layer-stack("JLC06201H-3313A", outers, even-layers? = true) where :
+  val test-stack = jlc-make-layer-stack("JLC06201H-3313A", outers, even-layers? = true) where :
     val core = FR4("core", 0.7, "core")
     val prepreg = FR4("2116", 0.1164, "2116*1")
     val prepregA = FR4("3313", 0.0994, "3313*1")

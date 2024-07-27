@@ -16,9 +16,10 @@ defpackage jlc-pcb/stackups/shared:
   import core
   import jitx
   import jsl/layerstack
+  forward jlc-pcb/stackups/utils
 
-public val copper-15_2um = Copper(0.0152)
-public val copper-35um = Copper(0.035)
+val copper-15_2um = Copper(0.0152)
+val copper-35um = Copper(0.035)
 
 public defenum PrepregType :
   \|7628|

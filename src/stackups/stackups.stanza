@@ -14,20 +14,20 @@ public defn make-layer-stack-from-name (name:String) -> LayerStack:
 
   val stackup-property = to-stackup-property(name)
   if num-layers(stackup-property) == 4 :
-    make-layer-stack(name, to-tuple $ outers) where :
+    jlc-make-layer-stack(name, to-tuple $ outers) where :
       val [prepregs core] = retrieve-4-layer-dialectrics(name)
       val [outer-copper inner-copper] = retrieve-4-layer-coppers(name)
-      val outers = Vector<[LayerSpec LayerSpec]|[LayerSpec Tuple<LayerSpec>]>()
-      add(outers, [outer-copper prepregs])
+      val outers = Vector<Tuple<LayerSpec>>()
+      add(outers, to-tuple $ cat([outer-copper] prepregs))
       add(outers, [inner-copper core])
   else : ; num-layers(stackup-property) == 6
-    make-layer-stack(name, to-tuple $ outers, even-layers? = even-layers?) where :
+    jlc-make-layer-stack(name, to-tuple $ outers, even-layers? = even-layers?) where :
       val [outer-prepregs core inner-prepregs even-layers?] = retrieve-6-layer-dialectrics(name)
       val [outer-copper mid-copper inner-copper] = retrieve-6-layer-coppers(name)
-      val outers = Vector<[LayerSpec LayerSpec]|[LayerSpec Tuple<LayerSpec>]>()
-      add(outers, [outer-copper outer-prepregs])
+      val outers = Vector<Tuple<LayerSpec>>()
+      add(outers, to-tuple $ cat([outer-copper] outer-prepregs))
       add(outers, [mid-copper core])
-      add(outers, [inner-copper inner-prepregs])
+      add(outers, to-tuple $ cat([inner-copper] inner-prepregs))
 
 doc:\<DOC>
   Create the JLC-PCB stackup from its name, such as JLC04161H-7628.

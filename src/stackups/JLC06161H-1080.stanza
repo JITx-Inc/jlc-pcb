@@ -15,6 +15,9 @@ defpackage jlc-pcb/JLC06161H-1080:
   import jsl/layerstack
   import jlc-pcb/stackups/shared
 
+val copper-15_2um = Copper(0.0152)
+val copper-35um = Copper(0.035)
+
 protected val stack = make-layer-stack("JLC06161H-1080", outers) where :
   val core = FR4("core", 0.5, "core")
   val prepreg = FR4("1080", 0.0764, "1080*1")
