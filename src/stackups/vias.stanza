@@ -1,0 +1,137 @@
+#use-added-syntax(jitx)
+defpackage jlc-pcb/stackups/vias:
+  import core
+  import jitx
+
+doc: \<DOC>
+Standard Via with minimum pad size
+<DOC>
+public pcb-via std-via:
+  name = "Standard Via - No Extra Cost"
+  start = Top
+  stop = Bottom
+  diameter = 0.4
+  hole-diameter = 0.3
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Standard Via with preferred pad size (larger)
+
+This via definition uses the preferred +0.15mm
+for the pad diameter which JLC-PCB recommends
+
+<DOC>
+public pcb-via std-via-preferred:
+  name = "Standard Via - No Extra Cost"
+  start = Top
+  stop = Bottom
+  diameter = 0.45
+  hole-diameter = 0.3
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 1. 
+There are multiple levels of extra cost that
+JLCPCB supports for smaller vias. This is the
+first layer.
+This via definition uses the standard +0.1mm
+for the pad diameter which is the minimum.
+<DOC>
+public pcb-via multi-via-cost+1:
+  name = "Multi-Layer Via - Cost + 1"
+  start = Top
+  stop = Bottom
+  diameter = 0.35
+  hole-diameter = 0.25
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 1. 
+There are multiple levels of extra cost that
+JLCPCB supports for smaller vias. This is the
+first layer.
+This via definition uses the preferred +0.15mm
+for the pad diameter which JLC-PCB recommends
+<DOC>
+public pcb-via multi-via-cost+1-preferred:
+  name = "Multi-Layer Via - Cost + 1"
+  start = Top
+  stop = Bottom
+  diameter = 0.40
+  hole-diameter = 0.25
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 2. 
+<DOC>
+public pcb-via multi-via-cost+2:
+  name = "Multi-Layer Via - Cost + 2"
+  start = Top
+  stop = Bottom
+  diameter = 0.30
+  hole-diameter = 0.2
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 2. 
+This via definition uses the preferred +0.15mm
+for the pad diameter which JLC-PCB recommends
+<DOC>
+public pcb-via multi-via-cost+2-preferred:
+  name = "Multi-Layer Via - Cost + 2"
+  start = Top
+  stop = Bottom
+  diameter = 0.35
+  hole-diameter = 0.2
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 3. 
+<DOC>
+  public pcb-via multi-via-cost+3:
+  name = "Multi-Layer Via - Cost + 3"
+  start = Top
+  stop = Bottom
+  diameter = 0.25
+  hole-diameter = 0.15
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Multi-layer (6+) via with extra cost + 3. 
+This via definition uses the preferred +0.15mm
+for the pad diameter which JLC-PCB recommends
+<DOC>
+public pcb-via multi-via-cost+3-preferred:
+  name = "Multi-Layer Via - Cost + 3"
+  start = Top
+  stop = Bottom
+  diameter = 0.3
+  hole-diameter = 0.15
+  type = MechanicalDrill
+  via-in-pad = false
+
+doc: \<DOC>
+Standard Tented and Filled Via
+
+This via is suitable for via-in-pad applications
+and use the preferred +0.15mm for the pad
+diameter which JLC-PCB recommends.
+<DOC>
+public pcb-via tented-filled-std-via:
+  name = "Tented/Filled Standard Via"
+  description = "Max Hole Diameter is 0.5mm"
+  start = Top
+  stop = Bottom
+  diameter = 0.45
+  hole-diameter = 0.3
+  type = MechanicalDrill
+  tented = true
+  filled = true
+  via-in-pad = true

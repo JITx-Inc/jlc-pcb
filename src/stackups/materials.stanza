@@ -1,0 +1,24 @@
+#use-added-syntax(jitx)
+defpackage jlc-pcb/stackups/materials:
+  import core
+  import jitx
+  import jsl/layerstack
+
+;----- Prepreg -----
+
+; From Impedance Control Specifications from JLC-PCB
+public val Er-7628 = 4.4
+public val Er-3314 = 4.1
+public val Er-1080 = 3.91
+public val Er-2116 = 4.16
+
+; No Specification - This is a guess
+public val Dk-prepreg = 0.01
+
+;----- Core -----
+
+; From Impedance Control Specifications from JLC-PCB
+public val Er-core = 4.6
+
+; No Specification - This is a guess
+public val Dk-core = 0.008
