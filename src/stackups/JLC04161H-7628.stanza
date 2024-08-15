@@ -1,0 +1,116 @@
+#use-added-syntax(jitx)
+defpackage jlc-pcb/stackups/JLC04161H-7628:
+  import core
+  import jitx
+  import jsl/layerstack
+  import jsl/si/physics
+  import jlc-pcb/stackups/materials
+
+
+public val stackup-gen = make-layer-stack("JLC04161H-7628", outers) where:
+  val cu-1oz = Copper(0.035)
+  val cu-halfoz = Copper(0.0152)
+
+  val core = FR4(1.065, name = "core")
+  val prepreg-7628x1 = FR4(0.2104, name = "7628x1")
+
+  val outers = [
+    [cu-1oz, prepreg-7628x1],
+    [cu-halfoz, core]
+  ]
+
+public val stackup = create-pcb-stackup(stackup-gen)
+
+public defn se-50 ( -- neckdown:NeckDown|False = false):
+
+  pcb-routing-structure se-50-int:
+    name = "50 Single-Ended - CPWG - JLC04161H-7628"
+
+    layer-constraints(Top): ; Microstrip
+      ; Assumes Reference on (Top + 1)
+      trace-width = 0.3244
+      clearance = 0.3
+      ; Non-dispersive Medium Assumption
+      ; Average the permittivity with air as an approximation.
+      velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+      insertion-loss = Dk-prepreg
+      match(neckdown):
+        (_:False): false
+        (given:NeckDown):
+          neck-down = given
+
+    layer-constraints(Bottom): ; Microstrip
+      ; Assumes Reference on (Bottom + 1)
+      trace-width = 0.3244
+      clearance = 0.3
+      ; Non-dispersive Medium Assumption
+      ; Average the permittivity with air as an approximation.
+      velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+      insertion-loss = Dk-prepreg
+      match(neckdown):
+        (_:False): false
+        (given:NeckDown):
+          neck-down = given
+  se-50-int
+
+
+doc: \<DOC>
+Default Uncoupled Region for the diff-100
+<DOC>
+public pcb-routing-structure uncoupled-diff-100-def:
+  layer-constraints(Top): ; Microstrip
+    ; Assumes Reference on (Top + 1)
+    trace-width = 0.1722
+    clearance = 0.15
+    ; Non-dispersive Medium Assumption
+    ; Average the permittivity with air as an approximation.
+    val v = phase-velocity((Er-7628 + 1.0) / 2.0)
+    println("Vel: %_" % [v])
+    velocity = v ;  phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+
+  layer-constraints(Bottom): ; Microstrip
+    ; Assumes Reference on (Bottom + 1)
+    trace-width = 0.1722
+    clearance = 0.15
+    ; Non-dispersive Medium Assumption
+    ; Average the permittivity with air as an approximation.
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+
+
+public pcb-differential-routing-structure diff-100 (
+  --
+  uncoupled:RoutingStructure|False = uncoupled-diff-100-def
+  neckdown:DifferentialNeckDown|False = false
+  ):
+  name = "100 Ohm Differential Pair - CPWG - JLC04161H-7628"
+
+  match(uncoupled):
+    (_:False): false
+    (given:RoutingStructure):
+      uncoupled-region = given
+
+  layer-constraints(Top):
+    ; Assumes Reference on Top + 1
+    trace-width = 0.1722
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+    match(neckdown):
+      (_:False): false
+      (given:DifferentialNeckDown):
+        neck-down = given
+
+  layer-constraints(Bottom):
+    ; Assumes Reference on Bottom + 1
+    trace-width = 0.1722
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+    match(neckdown):
+      (_:False): false
+      (given:DifferentialNeckDown):
+        neck-down = given

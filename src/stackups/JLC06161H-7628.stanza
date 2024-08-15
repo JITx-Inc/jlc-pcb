@@ -1,0 +1,120 @@
+#use-added-syntax(jitx)
+defpackage jlc-pcb/stackups/JLC06161H-7628:
+  import core
+  import jitx
+
+  import jsl/layerstack
+  import jsl/si/physics
+
+  import jlc-pcb/stackups/materials
+
+public val stackup = make-layer-stack("JLC06161H-7628", outers) where:
+  val cu-1oz = Copper(0.035)
+  val cu-halfoz = Copper(0.0152)
+
+  val core = FR4(0.4, name = "core")
+  val prepreg-7628x1 = FR4(0.2104, name = "7628x1")
+
+  val outers = [
+    [cu-1oz, prepreg-7628x1],
+    [cu-halfoz, core]
+    [cu-halfoz, FR4(0.2028, name = "7628x1")]
+  ]
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Routing Structures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+public pcb-routing-structure se-50 (nd:Maybe<NeckDown> = None()):
+  name = "50 Single-Ended - CPWG - JLC06161H-7628"
+
+  layer-constraints(Top): ; Microstrip
+    ; Assumes Reference on (Top + 1)
+    trace-width = 0.3421
+    clearance = 0.5
+    ; Non-dispersive Medium Assumption
+    velocity = phase-velocity(Er-7628)
+    match(nd):
+      (_:None): false
+      (given:One<NeckDown>):
+        neck-down = one(given)
+
+  layer-constraints(Bottom): ; Microstrip
+    ; Assumes Reference on (Bottom + 1)
+    trace-width = 0.3421
+    clearance = 0.5
+    ; Non-dispersive Medium Assumption
+    velocity = phase-velocity(Er-7628)
+    match(nd):
+      (_:None): false
+      (given:One<NeckDown>):
+        neck-down = one(given)
+
+  layer-constraints(Top+1): ; stripline
+    ; Assumes Top and Top + 2 are ground reference planes
+    trace-width = 0.2230
+    clearance = 0.3
+    ; Non-dispersive Medium Assumption
+    ; This is an approximation between the materials
+    ;  above and below this layer will be diffferent
+    ;  and have different permittivities.
+    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+
+  layer-constraints(Bottom+1): ; stripline
+    ; Assumes Bottom and Bottom + 2 are ground reference planes
+    trace-width = 0.2230
+    clearance = 0.3
+    ; Non-dispersive Medium Assumption
+    ; This is an approximation between the materials
+    ;  above and below this layer will be diffferent
+    ;  and have different permittivities.
+    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+
+public pcb-differential-routing-structure diff-100 (
+  uncoupled:Maybe<RoutingStructure> = None()
+  neckdown:Maybe<DifferentialNeckDown> = None()
+  ):
+  name = "100 Ohm Differential Pair - CPWG - JLC06161H-7628"
+
+  match(uncoupled):
+    (_:None): false
+    (given:One<RoutingStructure>):
+      uncoupled-region = one(given)
+
+  layer-constraints(Top):
+    ; Assumes Reference on Top + 1
+    trace-width = 0.1722
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity(Er-7628)
+    match(neckdown):
+      (_:None): false
+      (given:One<DifferentialNeckDown>):
+        neck-down = one(given)
+
+  layer-constraints(Bottom):
+    ; Assumes Reference on Bottom + 1
+    trace-width = 0.1722
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity(Er-7628)
+    match(neckdown):
+      (_:None): false
+      (given:One<DifferentialNeckDown>):
+        neck-down = one(given)
+
+  layer-constraints(Top+1):
+    ; Assumes Reference on Top and `Top + 2`
+    trace-width = 0.1298 
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+
+  layer-constraints(Bottom+1):
+    ; Assumes Reference on Bottom and `Bottom + 2`
+    trace-width = 0.1298 
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)

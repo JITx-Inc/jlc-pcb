@@ -1,0 +1,46 @@
+#use-added-syntax(jitx)
+doc:\<DOC>
+@brief JLC-PCB Multi-Layer 1oz Copper Rule Set
+Note: All metrics are in mm.
+Reference: https://jlcpcb.com/capabilities/Capabilities
+<DOC>
+defpackage jlc-pcb/rules/multi_1oz :
+  import core
+  import jitx
+
+doc: \<DOC>
+Default rule set for 1oz Copper on 4-6 layer boards.
+<DOC>
+public pcb-rules jlcpcb-rules-multi-1oz :
+  ;copper rules
+  min-copper-width = 0.09
+  min-copper-copper-space = 0.09
+  min-copper-hole-space = 0.254 ; Minimum Clearance -> "Via to Track"  
+  min-copper-edge-space = 0.3 ;  copper to edge of board
+    ; => "Trace to Outline" under "Board Outline"
+  ;soldermask rules
+  solder-mask-registration = 0.05 ; => soldermask expansion
+  min-soldermask-opening = 0.0 ; None Listed
+  min-soldermask-bridge = 0.08 ; Solder Mask -> Min. Solder Bridge
+  ;silkscreen rules
+  min-silkscreen-width = 0.153
+  min-silk-solder-mask-space = 0.15  ; => "Pad to silkscreen"
+  min-silkscreen-text-height = 1.0  ; => "Minimum text height"
+  ;via rules
+  min-annular-ring = 0.13 ; Minimum annular ring
+  min-drill-diameter = 0.3 ; => PTH under annular ring
+    ; => min of (Drill Hole Size, Via hole size, PTH hole size)
+  ;pitch rules
+  min-pitch-leaded = (0.127 + 0.09) ; Combination of:
+  ;  - 0.127 - Pad to Pad clearance(Pad without hole, Different nets)
+  ;  - 0.09 - Trace Width
+  min-pitch-bga =  0.377 ; 14.84mil 
+    ; => distance between center of two pads => pad diameter + gap between pads
+  ;pad rules
+  min-hole-to-hole = 0.5 ; => pad to pad clearance (pad with hole, different nets)
+  min-pth-pin-solder-clearance = 0.0; Soldermask Expansion - None Required
+  min-th-pad-expand-outer = 0.2 ; "Minimum Clearance" -> "Pad to Track"
+  ; Board Rules
+  max-board-width = 500.0 ; => "Max Dimension" under "PCB Specification"
+  max-board-height = 400.0 ;
+
