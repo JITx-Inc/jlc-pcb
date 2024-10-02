@@ -64,9 +64,7 @@ public pcb-routing-structure uncoupled-diff-100-def:
     clearance = 0.15
     ; Non-dispersive Medium Assumption
     ; Average the permittivity with air as an approximation.
-    val v = phase-velocity((Er-7628 + 1.0) / 2.0)
-    println("Vel: %_" % [v])
-    velocity = v ;  phase-velocity((Er-7628 + 1.0) / 2.0)
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
     insertion-loss = Dk-prepreg
 
   layer-constraints(Bottom): ; Microstrip
@@ -106,6 +104,63 @@ public pcb-differential-routing-structure diff-100 (
   layer-constraints(Bottom):
     ; Assumes Reference on Bottom + 1
     trace-width = 0.1722
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+    match(neckdown):
+      (_:False): false
+      (given:DifferentialNeckDown):
+        neck-down = given
+
+
+
+public pcb-routing-structure uncoupled-diff-90-def:
+  layer-constraints(Top): ; Microstrip
+    ; Assumes Reference on (Top + 1)
+    trace-width = 0.2332
+    clearance = 0.15
+    ; Non-dispersive Medium Assumption
+    ; Average the permittivity with air as an approximation.
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+
+  layer-constraints(Bottom): ; Microstrip
+    ; Assumes Reference on (Bottom + 1)
+    trace-width = 0.2332
+    clearance = 0.15
+    ; Non-dispersive Medium Assumption
+    ; Average the permittivity with air as an approximation.
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+
+public pcb-differential-routing-structure diff-90 (
+  --
+  uncoupled:RoutingStructure|False = uncoupled-diff-90-def
+  neckdown:DifferentialNeckDown|False = false
+  ):
+  name = "90 Ohm Differential Pair - CPWG - JLC04161H-7628"
+
+  match(uncoupled):
+    (_:False): false
+    (given:RoutingStructure):
+      uncoupled-region = given
+
+  layer-constraints(Top):
+    ; Assumes Reference on Top + 1
+    trace-width = 0.2332
+    pair-spacing = 0.15
+    clearance = 0.3
+    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    insertion-loss = Dk-prepreg
+    match(neckdown):
+      (_:False): false
+      (given:DifferentialNeckDown):
+        neck-down = given
+
+  layer-constraints(Bottom):
+    ; Assumes Reference on Bottom + 1
+    trace-width = 0.2332
     pair-spacing = 0.15
     clearance = 0.3
     velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
