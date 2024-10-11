@@ -7,7 +7,7 @@ doc: \<DOC>
 Standard Via with minimum pad size
 <DOC>
 public pcb-via std-via:
-  name = "Standard Via Agressive - No Extra Cost"
+  name = "Standard Via Aggressive - No Extra Cost"
   start = Top
   stop = Bottom
   diameter = 0.4
