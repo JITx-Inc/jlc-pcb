@@ -7,7 +7,7 @@ doc: \<DOC>
 Standard Via with minimum pad size
 <DOC>
 public pcb-via std-via:
-  name = "Standard Via - No Extra Cost"
+  name = "Standard Via Agressive - No Extra Cost"
   start = Top
   stop = Bottom
   diameter = 0.4
@@ -40,7 +40,7 @@ This via definition uses the standard +0.1mm
 for the pad diameter which is the minimum.
 <DOC>
 public pcb-via multi-via-cost+1:
-  name = "Multi-Layer Via - Cost + 1"
+  name = "Multi-Layer Via Aggressive - Cost + 1"
   start = Top
   stop = Bottom
   diameter = 0.35
@@ -69,7 +69,7 @@ doc: \<DOC>
 Multi-layer (6+) via with extra cost + 2. 
 <DOC>
 public pcb-via multi-via-cost+2:
-  name = "Multi-Layer Via - Cost + 2"
+  name = "Multi-Layer Via Aggressive - Cost + 2"
   start = Top
   stop = Bottom
   diameter = 0.30
@@ -95,7 +95,7 @@ doc: \<DOC>
 Multi-layer (6+) via with extra cost + 3. 
 <DOC>
   public pcb-via multi-via-cost+3:
-  name = "Multi-Layer Via - Cost + 3"
+  name = "Multi-Layer Via Aggressive - Cost + 3"
   start = Top
   stop = Bottom
   diameter = 0.25
