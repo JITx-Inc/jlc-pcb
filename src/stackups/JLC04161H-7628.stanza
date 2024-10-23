@@ -2,9 +2,16 @@
 defpackage jlc-pcb/stackups/JLC04161H-7628:
   import core
   import jitx
-  import jsl/layerstack
-  import jsl/si/physics
+
+  import jsl
+  import maybe-utils
+
   import jlc-pcb/stackups/materials
+  import jlc-pcb/stackups/vias
+
+; Non-dispersive Medium Assumption
+; Average the permittivity with air as an approximation.
+val med-velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
 
 
 public val stackup-gen = make-layer-stack("JLC04161H-7628", outers) where:
@@ -19,153 +26,97 @@ public val stackup-gen = make-layer-stack("JLC04161H-7628", outers) where:
     [cu-halfoz, core]
   ]
 
-public val stackup = create-pcb-stackup(stackup-gen)
-
-public defn se-50 ( -- neckdown:NeckDown|False = false):
-
-  pcb-routing-structure se-50-int:
-    name = "50 Single-Ended - CPWG - JLC04161H-7628"
-
-    layer-constraints(Top): ; Microstrip
-      ; Assumes Reference on (Top + 1)
-      trace-width = 0.3244
-      clearance = 0.3
-      ; Non-dispersive Medium Assumption
-      ; Average the permittivity with air as an approximation.
-      velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-      insertion-loss = Dk-prepreg
-      match(neckdown):
-        (_:False): false
-        (given:NeckDown):
-          neck-down = given
-
-    layer-constraints(Bottom): ; Microstrip
-      ; Assumes Reference on (Bottom + 1)
-      trace-width = 0.3244
-      clearance = 0.3
-      ; Non-dispersive Medium Assumption
-      ; Average the permittivity with air as an approximation.
-      velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-      insertion-loss = Dk-prepreg
-      match(neckdown):
-        (_:False): false
-        (given:NeckDown):
-          neck-down = given
-  se-50-int
+public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
+  name = "50Ω Single-Ended - CPWG - JLC04161H-7628"
+  ; Expects a ground ref plane on Top + 1 (or Bottom + 1)
+  val se-50-ustrip = RoutingStructureLayerConstraints(
+    trace-width = 0.3244,
+    clearance = 0.3,
+    velocity = med-velocity
+    insertion-loss = Dk-prepreg
+    neck-down = value-or-else(neckdown, {false})
+  )
+  layer-constraints(Top) = se-50-ustrip
+  layer-constraints(Bottom) = se-50-ustrip
 
 
 doc: \<DOC>
 Default Uncoupled Region for the diff-100
 <DOC>
 public pcb-routing-structure uncoupled-diff-100-def:
-  layer-constraints(Top): ; Microstrip
-    ; Assumes Reference on (Top + 1)
-    trace-width = 0.1722
-    clearance = 0.15
-    ; Non-dispersive Medium Assumption
-    ; Average the permittivity with air as an approximation.
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+  val df-100-ustrip = RoutingStructureLayerConstraints(
+    trace-width = 0.1722,
+    clearance = 0.15,
+    velocity = med-velocity
     insertion-loss = Dk-prepreg
-
-  layer-constraints(Bottom): ; Microstrip
-    ; Assumes Reference on (Bottom + 1)
-    trace-width = 0.1722
-    clearance = 0.15
-    ; Non-dispersive Medium Assumption
-    ; Average the permittivity with air as an approximation.
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-    insertion-loss = Dk-prepreg
+  )
+  layer-constraints(Top) = df-100-ustrip
+  layer-constraints(Bottom) = df-100-ustrip
 
 
 public pcb-differential-routing-structure diff-100 (
-  --
-  uncoupled:RoutingStructure|False = uncoupled-diff-100-def
-  neckdown:DifferentialNeckDown|False = false
+  uncoupled:Maybe<RoutingStructure> = None()
+  neckdown:Maybe<DifferentialNeckDown> = None()
   ):
-  name = "100 Ohm Differential Pair - CPWG - JLC04161H-7628"
+  name = "100Ω Differential Pair - CPWG - JLC04161H-7628"
 
-  match(uncoupled):
-    (_:False): false
-    (given:RoutingStructure):
-      uncoupled-region = given
+  make-uncoupled-region(uncoupled-diff-100-def, uncoupled)
 
-  layer-constraints(Top):
-    ; Assumes Reference on Top + 1
+  val df-100 = DiffRoutingStructureLayerConstraints(
     trace-width = 0.1722
     pair-spacing = 0.15
     clearance = 0.3
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    velocity = med-velocity
     insertion-loss = Dk-prepreg
-    match(neckdown):
-      (_:False): false
-      (given:DifferentialNeckDown):
-        neck-down = given
-
-  layer-constraints(Bottom):
-    ; Assumes Reference on Bottom + 1
-    trace-width = 0.1722
-    pair-spacing = 0.15
-    clearance = 0.3
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-    insertion-loss = Dk-prepreg
-    match(neckdown):
-      (_:False): false
-      (given:DifferentialNeckDown):
-        neck-down = given
-
-
+    neck-down = value-or-else(neckdown, {false})
+  )
+  ; Assumes Reference on Top + 1
+  layer-constraints(Top) = df-100
+  layer-constraints(Bottom) = df-100
 
 public pcb-routing-structure uncoupled-diff-90-def:
-  layer-constraints(Top): ; Microstrip
-    ; Assumes Reference on (Top + 1)
-    trace-width = 0.2332
-    clearance = 0.15
-    ; Non-dispersive Medium Assumption
-    ; Average the permittivity with air as an approximation.
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+  val df-90-ustrip = RoutingStructureLayerConstraints(
+    trace-width = 0.2332,
+    clearance = 0.15,
+    velocity = med-velocity
     insertion-loss = Dk-prepreg
+  )
+  layer-constraints(Top) = df-90-ustrip
+  layer-constraints(Bottom) = df-90-ustrip
 
-  layer-constraints(Bottom): ; Microstrip
-    ; Assumes Reference on (Bottom + 1)
-    trace-width = 0.2332
-    clearance = 0.15
-    ; Non-dispersive Medium Assumption
-    ; Average the permittivity with air as an approximation.
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-    insertion-loss = Dk-prepreg
 
 public pcb-differential-routing-structure diff-90 (
-  --
-  uncoupled:RoutingStructure|False = uncoupled-diff-90-def
-  neckdown:DifferentialNeckDown|False = false
+  uncoupled:Maybe<RoutingStructure> = None()
+  neckdown:Maybe<DifferentialNeckDown> = None()
   ):
-  name = "90 Ohm Differential Pair - CPWG - JLC04161H-7628"
+  name = "90Ω Differential Pair - CPWG - JLC04161H-7628"
 
-  match(uncoupled):
-    (_:False): false
-    (given:RoutingStructure):
-      uncoupled-region = given
+  make-uncoupled-region(uncoupled-diff-90-def, uncoupled)
 
-  layer-constraints(Top):
-    ; Assumes Reference on Top + 1
+  val df-90 = DiffRoutingStructureLayerConstraints(
     trace-width = 0.2332
     pair-spacing = 0.15
     clearance = 0.3
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+    velocity = med-velocity
     insertion-loss = Dk-prepreg
-    match(neckdown):
-      (_:False): false
-      (given:DifferentialNeckDown):
-        neck-down = given
+    neck-down = value-or-else(neckdown, {false})
+  )
+  ; Assumes Reference on Top + 1
+  layer-constraints(Top) = df-90
+  layer-constraints(Bottom) = df-90
 
-  layer-constraints(Bottom):
-    ; Assumes Reference on Bottom + 1
-    trace-width = 0.2332
-    pair-spacing = 0.15
-    clearance = 0.3
-    velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
-    insertion-loss = Dk-prepreg
-    match(neckdown):
-      (_:False): false
-      (given:DifferentialNeckDown):
-        neck-down = given
+
+public defn JLC04161H-7628 (vias:Tuple<Via> = JLC-VIA-DEFAULTS) -> Substrate :
+  Substrate(
+    stackup = stackup-gen,
+    vias = [
+      std-via-preferred, tented-filled-std-via
+    ],
+    single-ended = [
+      50 => se-50,
+    ]
+    differential = [
+      90 => diff-90,
+      100 => diff-100,
+    ]
+  )
