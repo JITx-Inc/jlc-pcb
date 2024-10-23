@@ -2,13 +2,15 @@
 defpackage jlc-pcb/stackups/JLC06161H-7628:
   import core
   import jitx
+  import jitx/commands
 
-  import jsl/layerstack
-  import jsl/si/physics
+  import maybe-utils
+  import jsl
 
+  import jlc-pcb/stackups/vias
   import jlc-pcb/stackups/materials
 
-public val stackup = make-layer-stack("JLC06161H-7628", outers) where:
+public val stackup-gen = make-layer-stack("JLC06161H-7628", outers) where:
   val cu-1oz = Copper(0.035)
   val cu-halfoz = Copper(0.0152)
 
@@ -26,95 +28,99 @@ public val stackup = make-layer-stack("JLC06161H-7628", outers) where:
 ; Routing Structures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+val ext-velocity = phase-velocity((Er-7628 + 1.0) / 2.0)
+val int-velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
 
-public pcb-routing-structure se-50 (nd:Maybe<NeckDown> = None()):
-  name = "50 Single-Ended - CPWG - JLC06161H-7628"
+public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
+  name = "50Ω Single-Ended - CPWG - JLC06161H-7628"
 
-  layer-constraints(Top): ; Microstrip
-    ; Assumes Reference on (Top + 1)
-    trace-width = 0.3421
-    clearance = 0.5
-    ; Non-dispersive Medium Assumption
-    velocity = phase-velocity(Er-7628)
-    match(nd):
-      (_:None): false
-      (given:One<NeckDown>):
-        neck-down = one(given)
+  ; This expects a ground ref plane on Top + 1
+  val ext-se-50-ustrip = RoutingStructureLayerConstraints(
+    trace-width = 0.3421,
+    clearance = 0.5,
+    velocity = ext-velocity
+    insertion-loss = Dk-prepreg
+    neck-down = value-or-else(neckdown, {false})
+  )
 
-  layer-constraints(Bottom): ; Microstrip
-    ; Assumes Reference on (Bottom + 1)
-    trace-width = 0.3421
-    clearance = 0.5
-    ; Non-dispersive Medium Assumption
-    velocity = phase-velocity(Er-7628)
-    match(nd):
-      (_:None): false
-      (given:One<NeckDown>):
-        neck-down = one(given)
+  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom + 2)
+  val int-se-50-stripline = RoutingStructureLayerConstraints(
+    trace-width = 0.2230,
+    clearance = 0.3,
+    velocity = int-velocity
+    insertion-loss = Dk-prepreg
+    neck-down = value-or-else(neckdown, {false})
+  )
 
-  layer-constraints(Top+1): ; stripline
-    ; Assumes Top and Top + 2 are ground reference planes
-    trace-width = 0.2230
-    clearance = 0.3
-    ; Non-dispersive Medium Assumption
-    ; This is an approximation between the materials
-    ;  above and below this layer will be diffferent
-    ;  and have different permittivities.
-    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+  layer-constraints(Top) = ext-se-50-ustrip
+  layer-constraints(Bottom) = ext-se-50-ustrip
+  layer-constraints(Top + 1) = int-se-50-stripline
+  layer-constraints(Bottom + 1) = int-se-50-stripline
 
-  layer-constraints(Bottom+1): ; stripline
-    ; Assumes Bottom and Bottom + 2 are ground reference planes
-    trace-width = 0.2230
-    clearance = 0.3
-    ; Non-dispersive Medium Assumption
-    ; This is an approximation between the materials
-    ;  above and below this layer will be diffferent
-    ;  and have different permittivities.
-    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+
+public pcb-routing-structure uncoupled-diff-100-def:
+  val df-100-ustrip = RoutingStructureLayerConstraints(
+    trace-width = 0.1722,
+    clearance = 0.15,
+    velocity = ext-velocity
+    insertion-loss = Dk-prepreg
+  )
+  val df-100-stripline = RoutingStructureLayerConstraints(
+    trace-width = 0.1298,
+    clearance = 0.15,
+    velocity = int-velocity
+    insertion-loss = Dk-prepreg
+  )
+
+  layer-constraints(Top) = df-100-ustrip
+  layer-constraints(Bottom) = df-100-ustrip
+
+  layer-constraints(Top + 1) = df-100-stripline
+  layer-constraints(Bottom + 1) = df-100-stripline
 
 public pcb-differential-routing-structure diff-100 (
   uncoupled:Maybe<RoutingStructure> = None()
   neckdown:Maybe<DifferentialNeckDown> = None()
   ):
-  name = "100 Ohm Differential Pair - CPWG - JLC06161H-7628"
+  name = "100Ω Differential Pair - CPWG - JLC06161H-7628"
 
-  match(uncoupled):
-    (_:None): false
-    (given:One<RoutingStructure>):
-      uncoupled-region = one(given)
+  make-uncoupled-region(uncoupled-diff-100-def, uncoupled)
 
-  layer-constraints(Top):
-    ; Assumes Reference on Top + 1
+  ; This expects a ground ref plane on Top + 1
+  val df-100-ustrip = DiffRoutingStructureLayerConstraints(
     trace-width = 0.1722
     pair-spacing = 0.15
     clearance = 0.3
-    velocity = phase-velocity(Er-7628)
-    match(neckdown):
-      (_:None): false
-      (given:One<DifferentialNeckDown>):
-        neck-down = one(given)
+    velocity = ext-velocity
+    insertion-loss = Dk-prepreg
+    neck-down = value-or-else(neckdown, {false})
+  )
+  layer-constraints(Top) = df-100-ustrip
+  layer-constraints(Bottom) = df-100-ustrip
 
-  layer-constraints(Bottom):
-    ; Assumes Reference on Bottom + 1
-    trace-width = 0.1722
+  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom + 2)
+  val df-100-stripline = DiffRoutingStructureLayerConstraints(
+    trace-width = 0.1298
     pair-spacing = 0.15
     clearance = 0.3
-    velocity = phase-velocity(Er-7628)
-    match(neckdown):
-      (_:None): false
-      (given:One<DifferentialNeckDown>):
-        neck-down = one(given)
+    velocity = int-velocity
+    insertion-loss = Dk-prepreg
+    neck-down = value-or-else(neckdown, {false})
+  )
 
-  layer-constraints(Top+1):
-    ; Assumes Reference on Top and `Top + 2`
-    trace-width = 0.1298 
-    pair-spacing = 0.15
-    clearance = 0.3
-    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+  layer-constraints(Top + 1) = df-100-stripline
+  layer-constraints(Bottom + 1) = df-100-stripline
 
-  layer-constraints(Bottom+1):
-    ; Assumes Reference on Bottom and `Bottom + 2`
-    trace-width = 0.1298 
-    pair-spacing = 0.15
-    clearance = 0.3
-    velocity = phase-velocity((Er-7628 + Er-core) / 2.0)
+public defn JLC06161H-7628 (vias:Tuple<Via> = JLC-VIA-DEFAULTS) -> Substrate :
+  Substrate(
+    stackup = stackup-gen,
+    vias = [
+      std-via-preferred, tented-filled-std-via
+    ],
+    single-ended = [
+      50 => se-50,
+    ]
+    differential = [
+      100 => diff-100,
+    ]
+  )

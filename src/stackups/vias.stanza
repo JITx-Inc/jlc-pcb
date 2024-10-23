@@ -32,7 +32,7 @@ public pcb-via std-via-preferred:
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 1. 
+Multi-layer (6+) via with extra cost + 1.
 There are multiple levels of extra cost that
 JLCPCB supports for smaller vias. This is the
 first layer.
@@ -49,7 +49,7 @@ public pcb-via multi-via-cost+1:
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 1. 
+Multi-layer (6+) via with extra cost + 1.
 There are multiple levels of extra cost that
 JLCPCB supports for smaller vias. This is the
 first layer.
@@ -66,7 +66,7 @@ public pcb-via multi-via-cost+1-preferred:
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 2. 
+Multi-layer (6+) via with extra cost + 2.
 <DOC>
 public pcb-via multi-via-cost+2:
   name = "Multi-Layer Via Aggressive - Cost + 2"
@@ -78,7 +78,7 @@ public pcb-via multi-via-cost+2:
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 2. 
+Multi-layer (6+) via with extra cost + 2.
 This via definition uses the preferred +0.15mm
 for the pad diameter which JLC-PCB recommends
 <DOC>
@@ -92,7 +92,7 @@ public pcb-via multi-via-cost+2-preferred:
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 3. 
+Multi-layer (6+) via with extra cost + 3.
 <DOC>
   public pcb-via multi-via-cost+3:
   name = "Multi-Layer Via Aggressive - Cost + 3"
@@ -104,7 +104,7 @@ Multi-layer (6+) via with extra cost + 3.
   via-in-pad = false
 
 doc: \<DOC>
-Multi-layer (6+) via with extra cost + 3. 
+Multi-layer (6+) via with extra cost + 3.
 This via definition uses the preferred +0.15mm
 for the pad diameter which JLC-PCB recommends
 <DOC>
@@ -135,3 +135,16 @@ public pcb-via tented-filled-std-via:
   tented = true
   filled = true
   via-in-pad = true
+
+doc: \<DOC>
+Minimal Default Via Set for JLC-PCB boards
+
+This contains the standard preferred via and the
+standard tented and filled via as options for all boards.
+
+These vias (as of 10/23/2024) do not have any up charge
+for processing.
+<DOC>
+public val JLC-VIA-DEFAULTS = [
+  std-via-preferred, tented-filled-std-via
+]
