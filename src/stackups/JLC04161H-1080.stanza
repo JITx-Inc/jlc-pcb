@@ -29,13 +29,13 @@ public val stackup-gen = make-layer-stack("JLC04161H-1080", outers) where:
 public defn se-50 (neckdown:Maybe<NeckDown> = None()) -> RoutingStructure:
   val se-50-ustrip = RoutingStructureLayerConstraints(
     trace-width = 0.1176,
-    clearance = 0.3,
+    clearance = 0.2,
     velocity = med-velocity
     insertion-loss = Dk-prepreg
     neck-down = value-or-else(neckdown, {false})
   )
   pcb-routing-structure se-50-int:
-    name = "50 Single-Ended - CPWG - JLC04161H-7628"
+    name = "50 Single-Ended - CPWG - JLC04161H-1080"
     layer-constraints(Top) = se-50-ustrip
     layer-constraints(Bottom) = se-50-ustrip
   se-50-int
@@ -46,8 +46,8 @@ Default Uncoupled Region for the diff-100
 <DOC>
 public pcb-routing-structure uncoupled-diff-100-def:
   val df-100-ustrip = RoutingStructureLayerConstraints(
-    trace-width = 0.1041,
-    clearance = 0.25,
+    trace-width = 0.09,
+    clearance = 0.2,
     velocity = med-velocity
     insertion-loss = Dk-prepreg
   )
@@ -59,14 +59,14 @@ public pcb-differential-routing-structure diff-100 (
   uncoupled:Maybe<RoutingStructure> = None()
   neckdown:Maybe<DifferentialNeckDown> = None()
   ):
-  name = "100 Ohm Differential Pair - CPWG - JLC04161H-7628"
+  name = "100 Ohm Differential Pair - CPWG - JLC04161H-1080"
 
   make-uncoupled-region(uncoupled-diff-100-def, uncoupled)
 
   val df-100 = DiffRoutingStructureLayerConstraints(
-    trace-width = 0.1041
-    pair-spacing = 0.25
-    clearance = 0.3
+    trace-width = 0.09
+    pair-spacing = 0.137
+    clearance = 0.2
     velocity = med-velocity
     insertion-loss = Dk-prepreg
     neck-down = value-or-else(neckdown, {false})
@@ -90,7 +90,7 @@ public pcb-differential-routing-structure diff-90 (
   uncoupled:Maybe<RoutingStructure> = None()
   neckdown:Maybe<DifferentialNeckDown> = None()
   ):
-  name = "90 Ohm Differential Pair - CPWG - JLC04161H-7628"
+  name = "90 Ohm Differential Pair - CPWG - JLC04161H-1080"
 
   make-uncoupled-region(uncoupled-diff-90-def, uncoupled)
 
