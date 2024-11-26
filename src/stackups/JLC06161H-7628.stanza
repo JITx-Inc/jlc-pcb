@@ -43,7 +43,7 @@ public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
     neck-down = value-or-else(neckdown, {false})
   )
 
-  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom + 2)
+  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom - 2)
   val int-se-50-stripline = RoutingStructureLayerConstraints(
     trace-width = 0.2230,
     clearance = 0.3,
@@ -55,7 +55,7 @@ public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
   layer-constraints(Top) = ext-se-50-ustrip
   layer-constraints(Bottom) = ext-se-50-ustrip
   layer-constraints(Top + 1) = int-se-50-stripline
-  layer-constraints(Bottom + 1) = int-se-50-stripline
+  layer-constraints(Bottom - 1) = int-se-50-stripline
 
 
 public pcb-routing-structure uncoupled-diff-100-def:
@@ -76,7 +76,7 @@ public pcb-routing-structure uncoupled-diff-100-def:
   layer-constraints(Bottom) = df-100-ustrip
 
   layer-constraints(Top + 1) = df-100-stripline
-  layer-constraints(Bottom + 1) = df-100-stripline
+  layer-constraints(Bottom - 1) = df-100-stripline
 
 public pcb-differential-routing-structure diff-100 (
   uncoupled:Maybe<RoutingStructure> = None()
@@ -98,7 +98,7 @@ public pcb-differential-routing-structure diff-100 (
   layer-constraints(Top) = df-100-ustrip
   layer-constraints(Bottom) = df-100-ustrip
 
-  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom + 2)
+  ; This expects a ground ref plane on Top and Top + 2 (or Bottom and Bottom - 2)
   val df-100-stripline = DiffRoutingStructureLayerConstraints(
     trace-width = 0.1298
     pair-spacing = 0.15
@@ -109,7 +109,7 @@ public pcb-differential-routing-structure diff-100 (
   )
 
   layer-constraints(Top + 1) = df-100-stripline
-  layer-constraints(Bottom + 1) = df-100-stripline
+  layer-constraints(Bottom - 1) = df-100-stripline
 
 public defn JLC06161H-7628 (vias:Tuple<Via> = JLC-VIA-DEFAULTS) -> Substrate :
   Substrate(
