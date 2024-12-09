@@ -18,8 +18,8 @@ public val stackup-gen = make-layer-stack("JLC04161H-1080", outers) where:
   val cu-1oz = Copper(0.035)
   val cu-halfoz = Copper(0.0152)
 
-  val core = FR4(1.265, name = "core")
-  val prepreg-1080x1 = FR4(0.0764, name = "1080x1")
+  val core = FR4(1.265, FR4-Core-Material, name = "core")
+  val prepreg-1080x1 = FR4(0.0764, FR4-1080-Material, name = "1080x1")
 
   val outers = [
     [cu-1oz, prepreg-1080x1],
@@ -31,7 +31,7 @@ public defn se-50 (neckdown:Maybe<NeckDown> = None()) -> RoutingStructure:
     trace-width = 0.1176,
     clearance = 0.2,
     velocity = med-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-1080
     neck-down = value-or-else(neckdown, {false})
   )
   pcb-routing-structure se-50-int:
@@ -49,7 +49,7 @@ public pcb-routing-structure uncoupled-diff-100-def:
     trace-width = 0.09,
     clearance = 0.2,
     velocity = med-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-1080
   )
   layer-constraints(Top) = df-100-ustrip
   layer-constraints(Bottom) = df-100-ustrip
@@ -68,7 +68,7 @@ public pcb-differential-routing-structure diff-100 (
     pair-spacing = 0.137
     clearance = 0.2
     velocity = med-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-1080
     neck-down = value-or-else(neckdown, {false})
   )
   ; Assumes Reference on Top + 1
@@ -80,7 +80,7 @@ public pcb-routing-structure uncoupled-diff-90-def:
     trace-width = 0.13180,
     clearance = 0.25,
     velocity = med-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-1080
   )
   layer-constraints(Top) = df-90-ustrip
   layer-constraints(Bottom) = df-90-ustrip
@@ -99,7 +99,7 @@ public pcb-differential-routing-structure diff-90 (
     pair-spacing = 0.25
     clearance = 0.3
     velocity = med-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-1080
     neck-down = value-or-else(neckdown, {false})
   )
   ; Assumes Reference on Top + 1

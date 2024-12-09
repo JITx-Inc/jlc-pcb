@@ -14,8 +14,8 @@ public val stackup-gen = make-layer-stack("JLC06161H-7628", outers) where:
   val cu-1oz = Copper(0.035)
   val cu-halfoz = Copper(0.0152)
 
-  val core = FR4(0.4, name = "core")
-  val prepreg-7628x1 = FR4(0.2104, name = "7628x1")
+  val core = FR4(0.4, FR4-Core-Material, name = "core")
+  val prepreg-7628x1 = FR4(0.2104, FR4-7628-Material name = "7628x1")
 
   val outers = [
     [cu-1oz, prepreg-7628x1],
@@ -39,7 +39,7 @@ public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
     trace-width = 0.3421,
     clearance = 0.5,
     velocity = ext-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
     neck-down = value-or-else(neckdown, {false})
   )
 
@@ -48,7 +48,7 @@ public pcb-routing-structure se-50 (neckdown:Maybe<NeckDown> = None()):
     trace-width = 0.2230,
     clearance = 0.3,
     velocity = int-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
     neck-down = value-or-else(neckdown, {false})
   )
 
@@ -63,13 +63,13 @@ public pcb-routing-structure uncoupled-diff-100-def:
     trace-width = 0.1722,
     clearance = 0.15,
     velocity = ext-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
   )
   val df-100-stripline = RoutingStructureLayerConstraints(
     trace-width = 0.1298,
     clearance = 0.15,
     velocity = int-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
   )
 
   layer-constraints(Top) = df-100-ustrip
@@ -92,7 +92,7 @@ public pcb-differential-routing-structure diff-100 (
     pair-spacing = 0.15
     clearance = 0.3
     velocity = ext-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
     neck-down = value-or-else(neckdown, {false})
   )
   layer-constraints(Top) = df-100-ustrip
@@ -104,7 +104,7 @@ public pcb-differential-routing-structure diff-100 (
     pair-spacing = 0.15
     clearance = 0.3
     velocity = int-velocity
-    insertion-loss = Dk-prepreg
+    insertion-loss = Dk-7628
     neck-down = value-or-else(neckdown, {false})
   )
 
