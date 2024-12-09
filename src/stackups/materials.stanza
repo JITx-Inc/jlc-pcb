@@ -12,8 +12,38 @@ public val Er-3314 = 4.1
 public val Er-1080 = 3.91
 public val Er-2116 = 4.16
 
-; No Specification - This is a guess
-public val Dk-prepreg = 0.01
+; Based on data provided here:
+;    https://github.com/JITx-Inc/jlc-pcb/issues/8
+; I'm using an average value for each of the materials
+public val Dk-7628 = 0.0168 
+public val Dk-3314 = 0.0168 
+public val Dk-1080 = 0.0178 
+public val Dk-2116 = 0.0168 
+
+public val FR4-7628-Material = DielectricMaterial(
+  description = "FR4 Prepreg 7628 - JLC PCB Specified"
+  dielectric-coefficient = Er-7628 ; @ 1GHz
+  loss-tangent = Dk-7628 ; @ 1GHz
+)
+
+public val FR4-3314-Material = DielectricMaterial(
+  description = "FR4 Prepreg 3314 - JLC PCB Specified"
+  dielectric-coefficient = Er-3314 ; @ 1GHz
+  loss-tangent = Dk-3314 ; @ 1GHz
+)
+
+public val FR4-1080-Material = DielectricMaterial(
+  description = "FR4 Prepreg 1080 - JLC PCB Specified"
+  dielectric-coefficient = Er-7628 ; @ 1GHz
+  loss-tangent = Dk-1080 ; @ 1GHz
+)
+
+public val FR4-2116-Material = DielectricMaterial(
+  description = "FR4 Prepreg 2116 - JLC PCB Specified"
+  dielectric-coefficient = Er-2116 ; @ 1GHz
+  loss-tangent = Dk-2116 ; @ 1GHz
+)
+
 
 ;----- Core -----
 
@@ -21,4 +51,12 @@ public val Dk-prepreg = 0.01
 public val Er-core = 4.6
 
 ; No Specification - This is a guess
-public val Dk-core = 0.008
+public val Dk-core = 0.0168
+
+
+public val FR4-Core-Material = DielectricMaterial(
+  description = "FR4 Core - JLC PCB Specified"
+  dielectric-coefficient = Er-core ; @ 1GHz
+  loss-tangent = Dk-core ; @ 1GHz
+)
+
